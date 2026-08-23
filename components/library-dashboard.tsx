@@ -526,150 +526,478 @@ function DashboardView({
   onAddBook: () => void;
   onLogSession: () => void;
 }) {
-  const activeBook = mockBooks[0];
+  const tbrBooks = [
+    { title: 'Dune', author: 'Frank Herbert', cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80' },
+    { title: 'Project Hail Mary', author: 'Andy Weir', cover: 'https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&w=300&q=80' },
+    { title: 'The Way of Kings', author: 'Brandon Sanderson', cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&q=80' },
+    { title: 'Fourth Wing', author: 'Rebecca Yarros', cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=300&q=80' },
+    { title: 'Mistborn', author: 'Brandon Sanderson', cover: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=300&q=80' },
+    { title: 'The Silent Patient', author: 'Alex Michaelides', cover: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80' },
+  ];
+
+  const spineBooks = [
+    { title: 'DUNE', author: 'FRANK HERBERT', color: '#7a2818', text: '#f3d9a2', height: 165 },
+    { title: 'THE WAY OF KINGS', author: 'BRANDON SANDERSON', color: '#1b3c59', text: '#e0c987', height: 180 },
+    { title: 'WORDS OF RADIANCE', author: 'BRANDON SANDERSON', color: '#27384c', text: '#cca24e', height: 185 },
+    { title: 'OATHBRINGER', author: 'BRANDON SANDERSON', color: '#3b233a', text: '#e5b869', height: 182 },
+    { title: 'RHYTHM OF WAR', author: 'BRANDON SANDERSON', color: '#4a1e1e', text: '#d1a757', height: 178 },
+    { title: 'MISTBORN', author: 'BRANDON SANDERSON', color: '#2a2d32', text: '#b8c4d0', height: 170 },
+    { title: 'THE NAME OF THE WIND', author: 'PATRICK ROTHFUSS', color: '#16382c', text: '#d4af37', height: 175 },
+    { title: 'THE HOBBIT', author: 'J.R.R. TOLKIEN', color: '#1d4838', text: '#edd69a', height: 160 },
+    { title: '1984', author: 'GEORGE ORWELL', color: '#802319', text: '#e8ded1', height: 155 },
+    { title: 'THE SILENT PATIENT', author: 'ALEX MICHAELIDES', color: '#d1cdc7', text: '#1a1a1a', height: 168 },
+    { title: 'SAPIENS', author: 'YUVAL NOAH HARARI', color: '#2b506e', text: '#f2e8cf', height: 172 },
+    { title: 'EDUCATED', author: 'TARA WESTOVER', color: '#1f4863', text: '#eddcd2', height: 164 },
+  ];
+
+  const paceBars = [
+    { month: 'Jan', val: 560 },
+    { month: 'Feb', val: 620 },
+    { month: 'Mar', val: 780 },
+    { month: 'Apr', val: 510 },
+    { month: 'May', val: 590, active: true },
+    { month: 'Jun', val: 680 },
+    { month: 'Jul', val: 720 },
+    { month: 'Aug', val: 610 },
+    { month: 'Sep', val: 640 },
+    { month: 'Oct', val: 750 },
+    { month: 'Nov', val: 820 },
+    { month: 'Dec', val: 910 },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 text-slate-200 font-sans">
+      {/* Top Banner Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <p className="eyebrow">Sunday, August 23, 2026</p>
-          <h1 className="text-2xl font-bold text-white">Good evening, Reader.</h1>
-          <p className="text-sm text-slate-400">Here is your reading journey at a glance.</p>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">Good evening, Reader.</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Here's your reading journey at a glance.</p>
+        </div>
+        <div className="text-xs text-slate-400 font-medium">
+          Friday, May 24, 2024
+        </div>
+      </div>
+
+      {/* 4 Stat Cards Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Card 1: Streak */}
+        <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 flex flex-col justify-between min-h-[112px]">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <Flame size={14} className="text-amber-500" />
+            <span>Reading Streak</span>
+          </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <div>
+              <div className="text-2xl font-bold text-white tracking-tight">28 <span className="text-xs font-normal text-slate-400">days</span></div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Longest: 46 days</p>
+            </div>
+            <svg className="w-20 h-9 text-amber-500 overflow-visible" viewBox="0 0 80 40" fill="none">
+              <path d="M0 32 Q 15 35, 25 28 T 50 18 T 65 22 T 80 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="80" cy="8" r="3.5" fill="currentColor" />
+            </svg>
+          </div>
         </div>
 
-        <button className="primary" onClick={onAddBook}>
-          <Plus size={16} /> Add a book
-        </button>
+        {/* Card 2: Books This Year */}
+        <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 flex flex-col justify-between min-h-[112px]">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <BookOpen size={14} className="text-amber-500" />
+            <span>Books This Year</span>
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold text-white tracking-tight">17 <span className="text-xs font-normal text-slate-400">books</span></div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Goal: 36 books</p>
+            <div className="h-1 w-full bg-slate-800 rounded-full mt-2.5 overflow-hidden">
+              <div className="h-full bg-amber-500 rounded-full" style={{ width: '47%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Pages This Year */}
+        <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 flex flex-col justify-between min-h-[112px]">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <Bookmark size={14} className="text-amber-500" />
+            <span>Pages This Year</span>
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold text-white tracking-tight">4,312 <span className="text-xs font-normal text-slate-400">pages</span></div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Goal: 10,000 pages</p>
+            <div className="h-1 w-full bg-slate-800 rounded-full mt-2.5 overflow-hidden">
+              <div className="h-full bg-amber-500 rounded-full" style={{ width: '43%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Average Rating */}
+        <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 flex flex-col justify-between min-h-[112px]">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <Star size={14} className="text-amber-500" />
+            <span>Average Rating</span>
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold text-white tracking-tight">4.2</div>
+            <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-400">
+              <div className="flex text-amber-500 gap-0.5">
+                <Star size={11} fill="currentColor" />
+                <Star size={11} fill="currentColor" />
+                <Star size={11} fill="currentColor" />
+                <Star size={11} fill="currentColor" />
+                <Star size={11} className="text-slate-600" fill="currentColor" />
+              </div>
+              <span>(23 ratings)</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <article className="panel space-y-2">
-          <div className="flex items-center justify-between text-amber-500">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Reading Streak</span>
-            <Flame size={18} />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">{mockStats.currentStreak} days</div>
-          <p className="text-xs text-amber-400">Longest: {mockStats.longestStreak} days</p>
-          <div className="progress"><span style={{ width: '100%' }} /></div>
-        </article>
-
-        <article className="panel space-y-2">
-          <div className="flex items-center justify-between text-amber-500">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Books This Year</span>
-            <BookOpen size={18} />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">{mockStats.booksThisYear}</div>
-          <p className="text-xs text-amber-400">↑ 24% vs last year</p>
-          <div className="progress"><span style={{ width: '72%' }} /></div>
-        </article>
-
-        <article className="panel space-y-2">
-          <div className="flex items-center justify-between text-amber-500">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Pages Read</span>
-            <Bookmark size={18} />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">{mockStats.pagesThisYear.toLocaleString()}</div>
-          <p className="text-xs text-amber-400">Goal: 10,000 pages</p>
-          <div className="progress"><span style={{ width: '68%' }} /></div>
-        </article>
-
-        <article className="panel space-y-2">
-          <div className="flex items-center justify-between text-amber-500">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Average Rating</span>
-            <Star size={18} />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">{mockStats.averageRating}</div>
-          <p className="text-xs text-amber-400">★★★★★ from {mockStats.booksThisYear} books</p>
-          <div className="progress"><span style={{ width: '90%' }} /></div>
-        </article>
-      </div>
-
-      {/* Main Dashboard Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Currently Reading Nightstand */}
-          <section className="panel space-y-4">
-            <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <div>
-                <span className="eyebrow">On your nightstand</span>
-                <h2 className="text-lg font-bold text-white">Currently Reading</h2>
-              </div>
-              <button className="text-button text-xs" onClick={() => setActive('Currently Reading')}>
-                View detail <ChevronRight size={14} />
-              </button>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <img src={activeBook.coverUrl} alt={activeBook.title} className="w-24 h-36 object-cover rounded-lg shadow-md shrink-0" />
-              <div className="flex-1 space-y-2 text-center sm:text-left">
-                <h3 className="text-base font-bold text-white">{activeBook.title}</h3>
-                <p className="text-xs text-slate-400">{activeBook.author}</p>
-                <div className="progress pt-2">
-                  <span style={{ width: '68%' }} />
-                </div>
-                <div className="flex justify-between text-[11px] text-slate-400 font-mono">
-                  <span>Page 218 of {activeBook.pageCount}</span>
-                  <span>68% Complete</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* TBR Showcase */}
-          <section className="panel space-y-4">
+      {/* Main Grid: Left 2/3, Right 1/3 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left Column (2 Cols wide) */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* UP NEXT IN YOUR TBR */}
+          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-center">
-              <div>
-                <span className="eyebrow">Waiting patiently</span>
-                <h2 className="text-lg font-bold text-white">Up Next in Your TBR</h2>
-              </div>
-              <button className="text-button text-xs" onClick={() => setActive('TBR Queue')}>
-                View full TBR <ChevronRight size={14} />
+              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Up Next in Your TBR</span>
+              <button
+                className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1 font-medium"
+                onClick={() => setActive('TBR Queue')}
+              >
+                View full TBR <ChevronRight size={13} />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              {mockBooks.slice(1, 5).map(book => (
-                <div
-                  key={book.id}
-                  className="book-card cursor-pointer group"
-                  onClick={() => setActive('Currently Reading')}
-                >
-                  <img src={book.coverUrl} alt={book.title} className="cover group-hover:scale-105 transition-transform" />
-                  <h4 className="text-xs font-semibold text-white line-clamp-1 mt-2">{book.title}</h4>
-                  <p className="text-[10px] text-slate-400 line-clamp-1">{book.author}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-1">
+              {tbrBooks.map((book, idx) => (
+                <div key={idx} className="group cursor-pointer space-y-1.5" onClick={() => setActive('Currently Reading')}>
+                  <div className="aspect-[2/3] rounded overflow-hidden bg-slate-800 shadow-md group-hover:scale-105 transition-transform duration-200">
+                    <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-white truncate leading-snug">{book.title}</h4>
+                    <p className="text-[10px] text-slate-400 truncate">{book.author}</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </section>
-        </div>
+          </div>
 
-        {/* Quick Actions Sidebar */}
-        <aside className="space-y-6">
-          <section className="panel space-y-3">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Quick Actions</h2>
-            <div className="space-y-2">
-              <button className="utility-row w-full text-left" onClick={onAddBook}>
-                <Plus size={16} className="text-amber-500" />
-                <span className="flex-1 text-xs text-slate-200">Add a New Book</span>
-                <ChevronRight size={14} className="text-slate-500" />
-              </button>
+          {/* Two Columns: Pace + Genre */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Reading Pace */}
+            <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-3 flex flex-col justify-between">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Reading Pace</span>
+                <select className="bg-[#1c1e20] border border-[#2e3134] text-slate-300 text-[11px] rounded px-2 py-0.5 outline-none cursor-pointer">
+                  <option>Monthly</option>
+                  <option>Weekly</option>
+                </select>
+              </div>
 
-              <button className="utility-row w-full text-left" onClick={onLogSession}>
-                <CalendarDays size={16} className="text-amber-500" />
-                <span className="flex-1 text-xs text-slate-200">Log Reading Session</span>
-                <ChevronRight size={14} className="text-slate-500" />
-              </button>
+              <div className="grid grid-cols-3 gap-2 items-end pt-2">
+                {/* Bar Chart Area */}
+                <div className="col-span-2 h-36 flex items-end justify-between gap-1 pr-2 border-r border-[#232629]">
+                  {paceBars.map((b, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                      <div
+                        className={`w-full max-w-[12px] rounded-t ${b.active ? 'bg-amber-500' : 'bg-[#2a2d30]'}`}
+                        style={{ height: `${(b.val / 1000) * 100}%` }}
+                      />
+                      <span className="text-[9px] text-slate-500 font-mono">{b.month[0]}</span>
+                    </div>
+                  ))}
+                </div>
 
-              <button className="utility-row w-full text-left" onClick={() => setActive('Overview')}>
-                <TrendingUp size={16} className="text-amber-500" />
-                <span className="flex-1 text-xs text-slate-200">View Reading Analytics</span>
-                <ChevronRight size={14} className="text-slate-500" />
+                {/* Right Metrics */}
+                <div className="space-y-3 pl-2 flex flex-col justify-center">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block font-medium">Monthly Average</span>
+                    <strong className="text-lg font-bold text-white block">546</strong>
+                    <span className="text-[10px] text-slate-500">pages</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block font-medium">2024 Goal</span>
+                    <strong className="text-lg font-bold text-white block">833</strong>
+                    <span className="text-[10px] text-slate-500">pages / month</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Genre Distribution */}
+            <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-3 flex flex-col justify-between">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Genre Distribution</span>
+              </div>
+
+              <div className="flex items-center gap-4 py-1">
+                {/* Donut Chart */}
+                <div className="relative w-28 h-28 rounded-full shrink-0 grid place-items-center bg-[conic-gradient(#f59e0b_0_41%,#ea580c_41%_59%,#f97316_59%_71%,#ef4444_71%_83%,#3b82f6_83%_92%,#475569_92%_100%)]">
+                  <div className="w-20 h-20 rounded-full bg-[#141618] flex flex-col items-center justify-center text-center">
+                    <strong className="text-xl font-bold text-white leading-none">17</strong>
+                    <span className="text-[9px] text-slate-400 font-medium">books</span>
+                  </div>
+                </div>
+
+                {/* Legend List */}
+                <div className="space-y-1 text-[11px] flex-1">
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <i className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> Fantasy
+                    </span>
+                    <span className="font-semibold text-white">41%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <i className="w-2 h-2 rounded-full bg-orange-600 inline-block" /> Sci-Fi
+                    </span>
+                    <span className="font-semibold text-white">18%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <i className="w-2 h-2 rounded-full bg-orange-500 inline-block" /> Mystery
+                    </span>
+                    <span className="font-semibold text-white">12%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <i className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Thriller
+                    </span>
+                    <span className="font-semibold text-white">12%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <i className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> Non-Fiction
+                    </span>
+                    <span className="font-semibold text-white">9%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <i className="w-2 h-2 rounded-full bg-slate-600 inline-block" /> Other
+                    </span>
+                    <span className="font-semibold text-white">8%</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="text-[11px] text-amber-500 hover:text-amber-400 font-medium text-left pt-1"
+                onClick={() => setActive('Genres')}
+              >
+                View full analytics
               </button>
             </div>
-          </section>
-        </aside>
+          </div>
+        </div>
+
+        {/* Right Column: Currently Reading + Quick Actions + Calendar */}
+        <div className="space-y-4">
+          {/* Currently Reading Card */}
+          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Currently Reading</span>
+              <button className="text-slate-500 hover:text-slate-300">
+                <Sliders size={13} />
+              </button>
+            </div>
+
+            <div className="flex gap-3.5 items-start pt-1">
+              <div className="w-24 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
+                <img
+                  src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80"
+                  alt="The Name of the Wind"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="space-y-2 flex-1">
+                <div>
+                  <h3 className="text-sm font-bold text-white leading-tight">The Name of the Wind</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Patrick Rothfuss</p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '65%' }} />
+                  </div>
+                  <div className="text-right text-[10px] text-amber-400 font-semibold">65%</div>
+                </div>
+
+                <button
+                  className="w-full bg-[#232628] hover:bg-[#2c3033] text-white text-xs font-semibold py-1.5 rounded transition-colors"
+                  onClick={() => setActive('Currently Reading')}
+                >
+                  Continue Reading
+                </button>
+
+                <div className="text-[10px] text-slate-400 space-y-0.5 pt-0.5">
+                  <p>Page 456 / 704</p>
+                  <p>Started on May 10, 2024</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions Card */}
+          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-2.5">
+            <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase block">Quick Actions</span>
+            <div className="space-y-1 pt-1">
+              <button
+                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                onClick={onAddBook}
+              >
+                <span>Add a New Book</span>
+                <Plus size={14} className="text-slate-400" />
+              </button>
+              <button
+                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                onClick={onLogSession}
+              >
+                <span>Log a Reading Session</span>
+                <CalendarDays size={14} className="text-slate-400" />
+              </button>
+              <button
+                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                onClick={() => setActive('Notes & Quotes')}
+              >
+                <span>Write a Reading Log</span>
+                <Bookmark size={14} className="text-slate-400" />
+              </button>
+              <button
+                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                onClick={() => setActive('Overview')}
+              >
+                <span>View Analytics</span>
+                <TrendingUp size={14} className="text-slate-400" />
+              </button>
+            </div>
+          </div>
+
+          {/* Reading Streak Calendar Card */}
+          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Reading Streak Calendar</span>
+            </div>
+
+            <div className="flex justify-between items-center text-xs font-semibold text-white">
+              <span>May 2024</span>
+              <div className="flex gap-2 text-slate-400">
+                <button className="hover:text-white">{"<"}</button>
+                <button className="hover:text-white">{">"}</button>
+              </div>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="space-y-1">
+              <div className="grid grid-cols-7 text-center text-[10px] text-slate-500 font-bold">
+                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+              </div>
+              <div className="grid grid-cols-7 text-center text-xs gap-y-1 text-slate-400">
+                <span className="text-slate-600">28</span><span className="text-slate-600">29</span><span className="text-slate-600">30</span>
+                <span>1</span><span>2</span><span>3</span><span>4</span>
+                <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+                <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
+                <span>19</span><span>20</span><span>21</span><span>22</span><span>23</span>
+                {/* Active Highlight Day */}
+                <span className="w-6 h-6 rounded-full border border-amber-500 text-amber-400 font-bold mx-auto flex items-center justify-center">24</span>
+                <span>25</span>
+                <span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span className="text-slate-600">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Wide Panel: VIRTUAL LIBRARY Realistic Wood Shelf */}
+      <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-4">
+        {/* Controls Header */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">Virtual Library</span>
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1 text-slate-400">
+              <span>View:</span>
+              <button className="p-1 text-slate-400 hover:text-white"><Grid2X2 size={14} /></button>
+              <button className="p-1 text-amber-500"><BookOpen size={14} /></button>
+              <button className="p-1 text-slate-400 hover:text-white"><Filter size={14} /></button>
+            </div>
+            <div className="flex items-center gap-1 text-slate-400">
+              <span>Sort by:</span>
+              <select className="bg-[#1c1e20] border border-[#2e3134] text-slate-300 text-[11px] rounded px-2 py-0.5 outline-none">
+                <option>Title</option>
+                <option>Author</option>
+                <option>Recent</option>
+              </select>
+            </div>
+            <button className="bg-[#1c1e20] border border-[#2e3134] px-2.5 py-0.5 rounded text-slate-300 hover:text-white">
+              Filter
+            </button>
+          </div>
+        </div>
+
+        {/* Realistic Wooden Shelf Stage */}
+        <div className="relative bg-gradient-to-b from-[#110d0a] via-[#1a120b] to-[#120c07] rounded-lg p-6 pt-10 border border-[#3d2616] overflow-hidden shadow-2xl">
+          {/* Wood Grain & Shelf Background Depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-950/20 via-black/60 to-black/90 pointer-events-none" />
+
+          {/* Book Spines Container */}
+          <div className="relative z-10 flex items-end justify-center gap-2 sm:gap-3.5 overflow-x-auto pb-3 min-h-[200px]">
+            {/* Left Decorative Plant */}
+            <div className="hidden sm:flex flex-col items-center justify-end mr-4 text-emerald-800/80">
+              <div className="w-10 h-10 bg-emerald-950/60 rounded-full border border-emerald-700/30 flex items-center justify-center shadow-lg">
+                🪴
+              </div>
+              <div className="w-7 h-5 bg-amber-900/60 rounded-b-md border border-amber-950" />
+            </div>
+
+            {/* Book Spines */}
+            {spineBooks.map((spine, idx) => (
+              <div
+                key={idx}
+                className="group relative cursor-pointer flex flex-col justify-between items-center rounded-sm transition-all duration-200 hover:-translate-y-2 hover:shadow-2xl shrink-0"
+                style={{
+                  width: '32px',
+                  height: `${spine.height}px`,
+                  backgroundColor: spine.color,
+                  boxShadow: 'inset 3px 0 6px rgba(255,255,255,0.15), inset -3px 0 6px rgba(0,0,0,0.6), 4px 4px 10px rgba(0,0,0,0.8)',
+                  borderLeft: '1px solid rgba(255,255,255,0.1)',
+                  borderRight: '1px solid rgba(0,0,0,0.4)',
+                }}
+                onClick={() => setActive('Currently Reading')}
+              >
+                {/* Gold Spine Lines top/bottom */}
+                <div className="w-full h-1 border-y border-amber-500/40 opacity-70 mt-2" />
+
+                {/* Vertical Spine Title */}
+                <span
+                  className="font-serif font-bold text-[10px] tracking-wider uppercase whitespace-nowrap overflow-hidden text-ellipsis px-1 select-none"
+                  style={{
+                    writingMode: 'vertical-rl',
+                    transform: 'rotate(180deg)',
+                    color: spine.text,
+                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+                  }}
+                >
+                  {spine.title}
+                </span>
+
+                <div className="w-full h-1 border-y border-amber-500/40 opacity-70 mb-2" />
+              </div>
+            ))}
+
+            {/* Right Vintage Lantern */}
+            <div className="hidden sm:flex flex-col items-center justify-end ml-4 text-amber-500/80">
+              <div className="w-8 h-12 bg-amber-950/40 rounded-t-full border border-amber-600/40 flex items-center justify-center shadow-amber-500/20 shadow-xl">
+                🕯️
+              </div>
+            </div>
+          </div>
+
+          {/* Solid Wooden Shelf Bar */}
+          <div className="relative z-10 h-5 bg-gradient-to-r from-[#422513] via-[#633a1e] to-[#422513] border-t-2 border-[#8c532b] shadow-2xl rounded-sm flex items-center justify-center">
+            <span className="bg-[#1e120a] text-amber-400/90 text-[10px] font-bold px-3 py-0.5 rounded-full border border-amber-800/40 shadow-inner">
+              34 books
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
