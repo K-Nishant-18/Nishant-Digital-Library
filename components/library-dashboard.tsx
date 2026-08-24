@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   BookOpen, LayoutDashboard, Grid2X2, Bookmark, CalendarDays, Flame, Tags,
   TrendingUp, Users, ChevronRight, Plus, Search, Bell, Sun, Moon, ChevronDown,
-  X, Check, Star, Filter, Heart, MessageSquare, User, Settings, Award, LogOut, Download, Sliders
+  X, Check, Star, Filter, Heart, MessageSquare, User, Settings, Award, LogOut, Download, Sliders, Menu
 } from 'lucide-react';
 import { CurrentlyReadingView } from '@/components/currently-reading';
 import { AnalyticsView } from '@/components/analytics-view';
@@ -40,6 +40,7 @@ export default function LibraryDashboard() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Modals state
   const [modal, setModal] = useState<'add' | 'session' | 'note' | null>(null);
@@ -143,6 +144,15 @@ export default function LibraryDashboard() {
       <main className="main-area">
         {/* Topbar */}
         <header className="topbar">
+          {/* Mobile Command Center Menu Trigger */}
+          <button
+            className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 text-xs font-semibold border border-amber-500/30 transition-all shrink-0 mr-2"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open Command Center Menu"
+          >
+            <Menu size={18} />
+          </button>
+
           <button className="search-trigger" onClick={() => setSearchOpen(true)}>
             <Search size={17} />
             <span>Search your library or Open Library...</span>
@@ -314,6 +324,89 @@ export default function LibraryDashboard() {
           )}
         </div>
       </main>
+
+      {/* Mobile Command Center Off-Canvas Drawer */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex animate-in fade-in duration-200" role="dialog">
+          <div className="w-72 max-w-[85vw] bg-[#101112] border-r border-[#222527] h-full p-5 flex flex-col gap-6 overflow-y-auto mobile-drawer animate-in slide-in-from-left duration-200 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b border-white/10">
+              <div className="brand cursor-pointer" onClick={() => { setActive('Dashboard'); setMobileMenuOpen(false); }}>
+                <div className="brand-mark">
+                  <BookOpen size={19} />
+                </div>
+                <span className="font-bold text-white text-lg">My Library</span>
+              </div>
+              <button
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Command Center */}
+            <div className="nav-group">
+              <div className="nav-label text-amber-400 font-bold tracking-wider text-[11px] uppercase mb-1">Command Center</div>
+              {nav.map(([name, Icon]) => (
+                <button
+                  key={name}
+                  className={`nav-item ${active === name ? 'active' : ''}`}
+                  onClick={() => { setActive(name); setMobileMenuOpen(false); }}
+                >
+                  <Icon size={17} />
+                  <span>{name}</span>
+                  {name === 'TBR Queue' && <span className="nav-count">12</span>}
+                </button>
+              ))}
+            </div>
+
+            {/* Analytics */}
+            <div className="nav-group">
+              <div className="nav-label tracking-wider text-[11px] uppercase mb-1">Analytics</div>
+              {analytics.map(([name, Icon]) => (
+                <button
+                  key={name}
+                  className={`nav-item ${active === name ? 'active' : ''}`}
+                  onClick={() => { setActive(name); setMobileMenuOpen(false); }}
+                >
+                  <Icon size={17} />
+                  <span>{name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Journal */}
+            <div className="nav-group">
+              <div className="nav-label tracking-wider text-[11px] uppercase mb-1">Journal</div>
+              {journal.map(name => (
+                <button
+                  key={name}
+                  className={`nav-item ${active === name ? 'active' : ''}`}
+                  onClick={() => { setActive(name); setMobileMenuOpen(false); }}
+                >
+                  <Bookmark size={17} />
+                  <span>{name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Streak Widget */}
+            <div className="streak-widget mt-auto">
+              <div className="streak-top">
+                <Flame size={19} />
+                <span>Keep going, Reader!</span>
+              </div>
+              <strong>{mockStats.currentStreak} day streak</strong>
+              <button onClick={() => { setActive('Pace & Streaks'); setMobileMenuOpen(false); }}>
+                View streaks <ChevronRight size={13} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 cursor-pointer" onClick={() => setMobileMenuOpen(false)} />
+        </div>
+      )}
 
       {/* Global Quick Search Overlay */}
       {searchOpen && (

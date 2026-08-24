@@ -19,9 +19,11 @@
   background: #f8fafc !important;
 }
 
-.app-shell.light-mode .sidebar {
+.app-shell.light-mode .sidebar,
+.app-shell.light-mode .mobile-drawer {
   background: #ffffff !important;
   border-right-color: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 .app-shell.light-mode .nav-item {
@@ -48,13 +50,41 @@
   border-color: #cbd5e1 !important;
   color: #64748b !important;
 }
+.app-shell.light-mode .search-trigger kbd {
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
 
 .app-shell.light-mode .panel,
-.app-shell.light-mode .stat-card {
-  background: #ffffff !important;
+.app-shell.light-mode .stat-card,
+.app-shell.light-mode [class*="bg-[#141618]"],
+.app-shell.light-mode [class*="bg-[#1c1e20]"] {
+  background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.app-shell.light-mode .streak-widget {
+  background: #fffbeb !important;
+  border-color: #fef3c7 !important;
+  color: #0f172a !important;
+}
+
+.app-shell.light-mode [class*="bg-slate-900"],
+.app-shell.light-mode [class*="bg-slate-950"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.app-shell.light-mode [class*="bg-[#232628]"] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.app-shell.light-mode [class*="bg-[#2a2d30]"] {
+  background-color: #e2e8f0 !important;
 }
 
 .app-shell.light-mode h1,
@@ -66,8 +96,32 @@
 }
 
 .app-shell.light-mode p,
-.app-shell.light-mode span:not(.primary) {
+.app-shell.light-mode span:not(.primary):not([class*="amber"]):not([class*="green"]):not([class*="red"]) {
   color: #475569;
+}
+
+.app-shell.light-mode .search-overlay {
+  background: rgba(15, 23, 42, 0.4) !important;
+  backdrop-filter: blur(4px);
+}
+
+.app-shell.light-mode .search-modal {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.app-shell.light-mode .search-modal input,
+.app-shell.light-mode .search-modal textarea,
+.app-shell.light-mode .search-modal select {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.app-shell.light-mode .donut:before {
+  background: #ffffff !important;
 }
 * { box-sizing:border-box; border-color:var(--border); }
 html { background:var(--background); }
