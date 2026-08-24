@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, BookOpen, User, Image, FileText, Tag, Book as BookIcon, Calendar, Building, Globe, Type, Hash, Bookmark, Star, Heart, Repeat, Smile, Meh, Frown, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, BookOpen, User, Image, FileText, Tag, Book as BookIcon, Calendar, Building, Globe, Type, Hash, Bookmark, Star, Heart, Repeat, Smile, Meh, Frown, Check, ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
 import { updateBookAction, updateLibraryEntryFullAction } from '@/lib/actions';
 import type { Book, LibraryEntry } from '@/lib/types';
 
@@ -137,40 +137,42 @@ export function BookEditModal({
   const rereadValueOptions = [1, 2, 3, 4, 5];
 
   return (
-    <div className="search-overlay" role="dialog">
-      <div className="search-modal space-y-0 max-w-2xl w-full">
+<div className="search-overlay" role="dialog">
+  <div className="search-modal space-y-0 max-w-2xl w-full rounded-2xl shadow-2xl p-6">
         {/* Header */}
-        <div className="flex justify-between items-center border-b border-white/10 pb-3">
-          <h2 className="text-lg font-bold text-white">Edit Book Details</h2>
-          <button className="close" onClick={onClose}>
+        <div className="flex justify-between items-center border-b border-white/10 pb-4">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Edit3 size={20} className="text-amber-500" /> Edit Book Details
+          </h2>
+          <button className="close hover:bg-slate-800/50 p-1.5 rounded-lg transition-colors" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10">
+        <div className="flex border-b border-white/10 mt-2 mb-4">
           <button
-            className={`flex-1 py-2 text-center text-sm font-medium ${activeTab === 'book' ? 'text-white border-b-2 border-amber-500' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 py-2.5 text-center text-xs font-bold transition-all ${activeTab === 'book' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-400 hover:text-slate-200'}`}
             onClick={() => setActiveTab('book')}
           >
-            Book Details
+            Book Metadata
           </button>
           <button
-            className={`flex-1 py-2 text-center text-sm font-medium ${activeTab === 'entry' ? 'text-white border-b-2 border-amber-500' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 py-2.5 text-center text-xs font-bold transition-all ${activeTab === 'entry' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-400 hover:text-slate-200'}`}
             onClick={() => setActiveTab('entry')}
           >
-            Library Entry
+            Reading Progress & Rating
           </button>
         </div>
 
         {/* Content */}
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto p-2">
+<div className="space-y-5 max-h-[70vh] overflow-y-auto p-4">
           {/* Book Details Tab */}
           {activeTab === 'book' && (
             <div className="space-y-4">
               {/* Cover Image */}
               <div className="flex gap-4">
-                <div className="w-24 h-32 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+<div className="w-32 h-44 bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
                   {bookData.coverUrl ? (
                     <img
                       src={bookData.coverUrl}
@@ -184,109 +186,109 @@ export function BookEditModal({
                   )}
                 </div>
 
-                <div className="flex-1 space-y-3">
+<div className="flex-1 space-y-4">
                   {/* Title */}
                   <div>
-                    <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
+<label className="text-xs text-slate-400 flex items-center gap-1 mb-1.5">
                       <BookIcon size={12} /> Title
                     </label>
-                    <input
-                      type="text"
-                      value={bookData.title}
-                      onChange={(e) => handleBookChange('title', e.target.value)}
-                      className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                    />
+<input
+  type="text"
+  value={bookData.title}
+  onChange={(e) => handleBookChange('title', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+/>
                   </div>
 
                   {/* Subtitle */}
                   <div>
-                    <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
+                    <label className="text-xs text-slate-400 flex items-center gap-1 mb-1.5">
                       <Type size={12} /> Subtitle
                     </label>
                     <input
                       type="text"
                       value={bookData.subtitle}
                       onChange={(e) => handleBookChange('subtitle', e.target.value)}
-                      className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                      className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
                     />
                   </div>
 
                   {/* Author */}
                   <div>
-                    <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
+                    <label className="text-xs text-slate-400 flex items-center gap-1 mb-1.5">
                       <User size={12} /> Author
                     </label>
                     <input
                       type="text"
                       value={bookData.author}
                       onChange={(e) => handleBookChange('author', e.target.value)}
-                      className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                      className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Cover URL */}
-              <div>
-                <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
-                  <Image size={12} /> Cover Image URL
-                </label>
-                <input
-                  type="text"
-                  value={bookData.coverUrl}
-                  onChange={(e) => handleBookChange('coverUrl', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                  placeholder="https://example.com/cover.jpg"
-                />
-              </div>
+                {/* Cover URL */}
+                <div>
+                  <label className="text-xs text-slate-400 flex items-center gap-1 mb-1.5">
+                    <Image size={12} /> Cover Image URL
+                  </label>
+                  <input
+                    type="text"
+                    value={bookData.coverUrl}
+                    onChange={(e) => handleBookChange('coverUrl', e.target.value)}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                    placeholder="https://example.com/cover.jpg"
+                  />
+                </div>
 
-              {/* Description */}
-              <div>
-                <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
-                  <FileText size={12} /> Description
-                </label>
-                <textarea
-                  value={bookData.description}
-                  onChange={(e) => handleBookChange('description', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white min-h-[100px]"
-                  placeholder="Book description..."
-                />
-              </div>
+                {/* Description */}
+                <div>
+                  <label className="text-xs text-slate-400 flex items-center gap-1 mb-1.5">
+                    <FileText size={12} /> Description
+                  </label>
+                  <textarea
+                    value={bookData.description}
+                    onChange={(e) => handleBookChange('description', e.target.value)}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white min-h-[120px] focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                    placeholder="Book description..."
+                  />
+                </div>
 
               {/* Genres */}
               <div>
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Tag size={12} /> Genres
                 </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={genreInput}
-                    onChange={(e) => setGenreInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addGenre()}
-                    className="flex-1 bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                    placeholder="Add a genre..."
-                  />
-                  <button
-                    onClick={addGenre}
-                    className="bg-amber-500 text-black px-3 py-2 rounded text-sm font-medium hover:bg-amber-400"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {bookData.genres?.map(genre => (
-                    <span
-                      key={genre}
-                      className="bg-slate-700 text-slate-200 px-2 py-1 rounded-full text-xs flex items-center gap-1"
-                    >
-                      {genre}
-                      <button onClick={() => removeGenre(genre)} className="text-slate-400 hover:text-white">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+<div className="flex gap-2 mb-2">
+  <input
+    type="text"
+    value={genreInput}
+    onChange={(e) => setGenreInput(e.target.value)}
+    onKeyDown={(e) => e.key === 'Enter' && addGenre()}
+    className="flex-1 bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+    placeholder="Add a genre..."
+  />
+  <button
+    onClick={addGenre}
+    className="bg-amber-500 text-black px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-400 transition-colors"
+  >
+    Add
+  </button>
+</div>
+<div className="flex flex-wrap gap-2">
+  {bookData.genres?.map(genre => (
+    <span
+      key={genre}
+      className="bg-slate-700 text-slate-200 px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 hover:bg-slate-600 transition-colors"
+    >
+      {genre}
+      <button onClick={() => removeGenre(genre)} className="text-slate-400 hover:text-white">
+        <X size={14} />
+      </button>
+    </span>
+  ))}
+</div>
               </div>
 
               {/* Format */}
@@ -294,11 +296,11 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Bookmark size={12} /> Format
                 </label>
-                <select
-                  value={bookData.format}
-                  onChange={(e) => handleBookChange('format', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                >
+<select
+  value={bookData.format}
+  onChange={(e) => handleBookChange('format', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+>
                   {formatOptions.map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -312,13 +314,13 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Hash size={12} /> Page Count
                 </label>
-                <input
-                  type="number"
-                  value={bookData.pageCount}
-                  onChange={(e) => handleBookChange('pageCount', parseInt(e.target.value) || 0)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                  min="0"
-                />
+<input
+  type="number"
+  value={bookData.pageCount}
+  onChange={(e) => handleBookChange('pageCount', parseInt(e.target.value) || 0)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+  min="0"
+/>
               </div>
 
               {/* Published Year */}
@@ -326,14 +328,14 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Calendar size={12} /> Published Year
                 </label>
-                <input
-                  type="number"
-                  value={bookData.publishedYear || ''}
-                  onChange={(e) => handleBookChange('publishedYear', parseInt(e.target.value) || undefined)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                  min="0"
-                  placeholder="YYYY"
-                />
+<input
+  type="number"
+  value={bookData.publishedYear || ''}
+  onChange={(e) => handleBookChange('publishedYear', parseInt(e.target.value) || undefined)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+  min="0"
+  placeholder="YYYY"
+/>
               </div>
 
               {/* Publisher */}
@@ -341,12 +343,12 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Building size={12} /> Publisher
                 </label>
-                <input
-                  type="text"
-                  value={bookData.publisher}
-                  onChange={(e) => handleBookChange('publisher', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                />
+<input
+  type="text"
+  value={bookData.publisher}
+  onChange={(e) => handleBookChange('publisher', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+/>
               </div>
 
               {/* Language */}
@@ -354,12 +356,12 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Globe size={12} /> Language
                 </label>
-                <input
-                  type="text"
-                  value={bookData.language}
-                  onChange={(e) => handleBookChange('language', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                />
+<input
+  type="text"
+  value={bookData.language}
+  onChange={(e) => handleBookChange('language', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+/>
               </div>
             </div>
           )}
@@ -372,11 +374,11 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <BookOpen size={12} /> Reading Status
                 </label>
-                <select
-                  value={entryData.status}
-                  onChange={(e) => handleEntryChange('status', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                >
+<select
+  value={entryData.status}
+  onChange={(e) => handleEntryChange('status', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+>
                   {statusOptions.map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -423,14 +425,14 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Hash size={12} /> Current Page
                 </label>
-                <input
-                  type="number"
-                  value={entryData.currentPage}
-                  onChange={(e) => handleEntryChange('currentPage', parseInt(e.target.value) || 0)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                  min="0"
-                  max={bookData.pageCount || 1000}
-                />
+<input
+  type="number"
+  value={entryData.currentPage}
+  onChange={(e) => handleEntryChange('currentPage', parseInt(e.target.value) || 0)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+  min="0"
+  max={bookData.pageCount || 1000}
+/>
               </div>
 
               {/* Difficulty */}
@@ -509,12 +511,12 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Calendar size={12} /> Date Started
                 </label>
-                <input
-                  type="date"
-                  value={entryData.dateStarted}
-                  onChange={(e) => handleEntryChange('dateStarted', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                />
+<input
+  type="date"
+  value={entryData.dateStarted}
+  onChange={(e) => handleEntryChange('dateStarted', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+/>
               </div>
 
               {/* Date Finished */}
@@ -522,12 +524,12 @@ export function BookEditModal({
                 <label className="text-xs text-slate-400 flex items-center gap-1 mb-1">
                   <Calendar size={12} /> Date Finished
                 </label>
-                <input
-                  type="date"
-                  value={entryData.dateFinished}
-                  onChange={(e) => handleEntryChange('dateFinished', e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                />
+<input
+  type="date"
+  value={entryData.dateFinished}
+  onChange={(e) => handleEntryChange('dateFinished', e.target.value)}
+  className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+/>
               </div>
             </div>
           )}
@@ -541,21 +543,21 @@ export function BookEditModal({
         )}
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 pt-3 border-t border-white/10">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="primary px-4 py-2 text-sm"
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+<div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+  <button
+    onClick={onClose}
+    className="px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors"
+  >
+    Cancel
+  </button>
+  <button
+    onClick={handleSave}
+    disabled={isSaving}
+    className="primary px-5 py-2.5 text-sm shadow-md hover:shadow-lg transition-all"
+  >
+    {isSaving ? 'Saving...' : 'Save Changes'}
+  </button>
+</div>
       </div>
     </div>
   );

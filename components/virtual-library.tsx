@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Grid2X2, List, LayoutGrid, Filter, Search, Plus, Star, Heart, Bookmark, 
+import {
+  Grid2X2, List, LayoutGrid, Filter, Search, Plus, Star, Heart, Bookmark,
   Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers, Sliders, Edit3
 } from 'lucide-react';
 import { mockBooks, mockShelves, mockLibraryEntries } from '@/lib/data';
@@ -18,9 +18,9 @@ interface VirtualLibraryProps {
   shelves?: Shelf[];
 }
 
-export function VirtualLibraryView({ 
-  onSelectBook, 
-  onAddBook, 
+export function VirtualLibraryView({
+  onSelectBook,
+  onAddBook,
   onEditBook,
   initialStatus = 'all',
   books: dbBooks,
@@ -40,10 +40,10 @@ export function VirtualLibraryView({
 
   const filteredBooks = books.filter(book => {
     const matchesSearch = `${book.title} ${book.author} ${(book.genres || []).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Check shelf match
     const inShelf = !currentShelf || currentShelf.isDefault || (currentShelf.bookIds || []).includes(book.id);
-    
+
     // Check status match
     const entry = entries.find(e => e.bookId === book.id || e.id === book.id);
     const matchesStatus = selectedStatus === 'all' || (entry && entry.status === selectedStatus);
@@ -52,7 +52,7 @@ export function VirtualLibraryView({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -61,9 +61,9 @@ export function VirtualLibraryView({
           <p className="text-sm text-slate-400">Your digital bookshelf with customizable collections and reading views.</p>
         </div>
 
-        <button className="primary" onClick={onAddBook}>
-          <Plus size={16} /> Add a Book
-        </button>
+<button className="primary flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-shadow" onClick={onAddBook}>
+  <Plus size={16} /> Add a Book
+</button>
       </div>
 
       {/* Shelves Pill Navigation */}
@@ -72,16 +72,14 @@ export function VirtualLibraryView({
           <button
             key={shelf.id}
             onClick={() => setSelectedShelf(shelf.id)}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-2 transition-all ${
-              selectedShelf === shelf.id
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-2 transition-all ${selectedShelf === shelf.id
                 ? 'bg-amber-500 text-black font-semibold shadow-md'
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-white/5'
-            }`}
+              }`}
           >
             <span>{shelf.name}</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-              selectedShelf === shelf.id ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-400'
-            }`}>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedShelf === shelf.id ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-400'
+              }`}>
               {shelf.isDefault ? books.length : (shelf.bookIds || []).length}
             </span>
           </button>
@@ -89,17 +87,17 @@ export function VirtualLibraryView({
       </div>
 
       {/* Toolbar: Search, Filters, View Switches */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/60 p-3 rounded-xl border border-white/5">
-        <div className="relative w-full sm:w-72">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Filter title, author, genre..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white placeholder:text-slate-500 outline-none"
-          />
-        </div>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/60 p-4 rounded-xl border border-white/5 shadow-sm">
+<div className="relative w-full sm:w-72">
+  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+  <input
+    type="text"
+    placeholder="Filter title, author, genre..."
+    value={searchQuery}
+    onChange={e => setSearchQuery(e.target.value)}
+    className="w-full bg-slate-950 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-slate-500 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+  />
+</div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
           {/* Status Filter */}
@@ -144,51 +142,59 @@ export function VirtualLibraryView({
       {/* Grid View */}
       {viewMode === 'grid' && (
         <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {filteredBooks.map(book => {
-            const entry = entries.find(e => e.bookId === book.id || e.id === book.id);
-            return (
-              <article 
-                key={book.id} 
-                className="book-card group cursor-pointer"
-                onClick={() => onSelectBook(book)}
-              >
-                <div className="relative overflow-hidden rounded-lg bg-slate-800 aspect-[2/3]">
-                  <img 
-                    src={book.coverUrl} 
-                    alt={book.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                    onError={e => { (e.target as HTMLElement).style.background = book.coverColor || '#334155'; }}
-                  />
-                  {entry?.status === 'reading' && (
-                    <span className="absolute top-2 left-2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow">
-                      {entry.progressPercent}%
-                    </span>
-                  )}
-                  {onEditBook && entry && (
-                    <button
-                      className="absolute top-2 right-2 p-1.5 rounded-md bg-black/70 hover:bg-amber-500 hover:text-black text-slate-200 transition-all opacity-0 group-hover:opacity-100 shadow"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditBook(entry);
-                      }}
-                      title="Edit Book Details"
-                    >
-                      <Edit3 size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-1 mt-2">
-                  <h3 className="text-xs font-bold text-white line-clamp-1 group-hover:text-amber-400 transition-colors">{book.title}</h3>
-                  <p className="text-[11px] text-slate-400 line-clamp-1">{book.author}</p>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1">
-                    <span className="capitalize">{book.format}</span>
-                    <span>{book.pageCount} pgs</span>
+          {filteredBooks.length === 0 ? (
+            <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 panel text-center py-12 space-y-3 rounded-xl">
+              <BookOpen size={32} className="mx-auto text-slate-600" />
+              <h3 className="text-white font-semibold">No books found</h3>
+              <p className="text-xs text-slate-400">Try adjusting your filters or search keywords.</p>
+            </div>
+          ) : (
+            filteredBooks.map(book => {
+              const entry = entries.find(e => e.bookId === book.id || e.id === book.id);
+              return (
+                <article
+                  key={book.id}
+                  className="book-card group cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+                  onClick={() => onSelectBook(book)}
+                >
+                  <div className="relative overflow-hidden rounded-lg bg-slate-800 aspect-[2/3] shadow-md group-hover:shadow-amber-500/20 transition-shadow">
+                    <img
+                      src={book.coverUrl}
+                      alt={book.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={e => { (e.target as HTMLElement).style.background = book.coverColor || '#334155'; }}
+                    />
+                    {entry?.status === 'reading' && (
+                      <span className="absolute top-2 left-2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                        {entry.progressPercent}%
+                      </span>
+                    )}
+                    {onEditBook && entry && (
+                      <button
+                        className="absolute top-2 right-2 p-1.5 rounded-md bg-black/70 hover:bg-amber-500 hover:text-black text-slate-200 transition-all opacity-0 group-hover:opacity-100 shadow"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditBook(entry);
+                        }}
+                        title="Edit Book Details"
+                      >
+                        <Edit3 size={13} />
+                      </button>
+                    )}
                   </div>
-                </div>
-              </article>
-            );
-          })}
+
+                  <div className="space-y-1.5 mt-3">
+                    <h3 className="text-sm font-bold text-white line-clamp-1 group-hover:text-amber-400 transition-colors">{book.title}</h3>
+                    <p className="text-[11px] text-slate-400 line-clamp-1">{book.author}</p>
+                    <div className="flex items-center justify-between text-xs text-slate-500 font-mono pt-1.5">
+                      <span className="capitalize">{book.format}</span>
+                      <span>{book.pageCount} pgs</span>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </section>
       )}
 
@@ -213,7 +219,7 @@ export function VirtualLibraryView({
                   style={{ width: '48px', height: `${Math.min(220, Math.max(160, (book.pageCount || 300) / 2))}px` }}
                 >
                   {/* Vertical Spine */}
-                  <div 
+                  <div
                     className="w-full h-full rounded-sm shadow-xl flex flex-col justify-between p-2 border-l border-t border-white/20 relative overflow-hidden"
                     style={{ backgroundColor: book.coverColor || '#475569' }}
                   >
@@ -226,7 +232,7 @@ export function VirtualLibraryView({
                   </div>
                 </div>
               ))}
-              
+
               {/* Wooden Shelf Baseline */}
               <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-amber-900/80 via-amber-700/80 to-amber-900/80 rounded-b-xl border-t border-amber-500/40" />
             </div>
@@ -245,8 +251,8 @@ export function VirtualLibraryView({
           </div>
 
           {filteredBooks.map(book => (
-            <div 
-              key={book.id} 
+            <div
+              key={book.id}
               onClick={() => onSelectBook(book)}
               className="grid grid-cols-12 items-center text-xs p-3 rounded-lg hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-white/5"
             >

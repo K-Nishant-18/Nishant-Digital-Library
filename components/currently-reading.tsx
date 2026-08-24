@@ -49,7 +49,7 @@ export function CurrentlyReadingView({
           <img 
             src={book.coverUrl} 
             alt={book.title} 
-            className="w-36 h-52 object-cover rounded-lg shadow-xl border border-white/10 shrink-0 bg-slate-800" 
+            className="w-36 h-52 object-cover rounded-lg shadow-xl border border-[var(--border)] shrink-0" 
             onError={e => { (e.target as HTMLElement).style.background = book.coverColor || '#b7791f'; }}
           />
 
@@ -70,19 +70,19 @@ export function CurrentlyReadingView({
               )}
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-white">{book.title}</h1>
-            {book.subtitle && <p className="text-sm text-slate-400">{book.subtitle}</p>}
+            <h1 className="text-2xl md:text-3xl font-bold">{book.title}</h1>
+            {book.subtitle && <p className="text-sm text-[var(--muted)]">{book.subtitle}</p>}
             
-            <div className="flex items-center gap-4 text-sm text-slate-300">
-              <span className="font-semibold text-white">{book.author}</span>
+            <div className="flex items-center gap-4 text-sm text-[var(--muted)]">
+              <span className="font-semibold">{book.author}</span>
               <div className="flex items-center gap-1 text-amber-400">
-                ★ <span className="text-xs text-slate-400 font-mono">{activeEntry.rating || 4.5} reader rating</span>
+                ★ <span className="text-xs text-[var(--muted)] font-mono">{activeEntry.rating || 4.5} reader rating</span>
               </div>
             </div>
 
             {/* Progress bar */}
             <div className="space-y-1.5 pt-2">
-              <div className="flex justify-between text-xs text-slate-400 font-mono">
+              <div className="flex justify-between text-xs text-[var(--muted)] font-mono">
                 <span>Page {activeEntry.currentPage} of {book.pageCount}</span>
                 <span>{activeEntry.progressPercent}% complete</span>
               </div>
@@ -108,24 +108,24 @@ export function CurrentlyReadingView({
           </div>
 
           {/* Quick stats box */}
-          <div className="w-full md:w-56 bg-slate-900/60 rounded-xl p-4 border border-white/5 space-y-3 shrink-0">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Book Snapshot</div>
+          <div className="w-full md:w-56 panel rounded-xl p-4 space-y-3 shrink-0">
+            <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Book Snapshot</div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <span className="text-slate-500 block">Started</span>
-                <span className="font-medium text-slate-200">{activeEntry.dateStarted ? format(new Date(activeEntry.dateStarted), 'MMM d') : 'Recently'}</span>
+                <span className="text-[var(--muted)] block">Started</span>
+                <span className="font-medium">{activeEntry.dateStarted ? format(new Date(activeEntry.dateStarted), 'MMM d') : 'Recently'}</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Time Spent</span>
-                <span className="font-medium text-amber-400 font-mono">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</span>
+                <span className="text-[var(--muted)] block">Time Spent</span>
+                <span className="font-medium text-amber-500 font-mono">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Sessions</span>
-                <span className="font-medium text-slate-200">{sessions.length} sessions</span>
+                <span className="text-[var(--muted)] block">Sessions</span>
+                <span className="font-medium">{sessions.length} sessions</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Avg Pace</span>
-                <span className="font-medium text-slate-200">{avgPages} pgs/sess</span>
+                <span className="text-[var(--muted)] block">Avg Pace</span>
+                <span className="font-medium">{avgPages} pgs/sess</span>
               </div>
             </div>
           </div>
@@ -133,14 +133,14 @@ export function CurrentlyReadingView({
       </div>
 
       {/* Navigation tabs */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-px">
+      <div className="flex items-center gap-2 border-b border-[var(--border)] pb-px">
         {(['overview', 'progress', 'notes', 'chapters'] as const).map(tab => (
           <button
             key={tab}
             className={`px-4 py-2 text-sm font-medium border-b-2 capitalize transition-colors ${
               activeTab === tab 
                 ? 'border-amber-500 text-amber-500' 
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : 'border-transparent text-[var(--muted)] hover:text-[var(--foreground)]'
             }`}
             onClick={() => setActiveTab(tab)}
           >
@@ -154,11 +154,11 @@ export function CurrentlyReadingView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <section className="panel space-y-3">
-              <h2 className="text-lg font-bold text-white">About the Book</h2>
-              <p className="text-sm text-slate-300 leading-relaxed">{book.description || 'No description available for this book yet.'}</p>
+              <h2 className="text-lg font-bold">About the Book</h2>
+              <p className="text-sm text-[var(--muted)] leading-relaxed">{book.description || 'No description available for this book yet.'}</p>
               <div className="flex flex-wrap gap-2 pt-2">
                 {book.genres.map(genre => (
-                  <span key={genre} className="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full border border-white/5">
+                  <span key={genre} className="genre-tag">
                     {genre}
                   </span>
                 ))}
@@ -167,7 +167,7 @@ export function CurrentlyReadingView({
 
             <section className="panel space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">Recent Reading Sessions</h2>
+                <h2 className="text-lg font-bold">Recent Reading Sessions</h2>
                 <button className="text-button text-xs" onClick={onLogSession}>Log session <ChevronRight size={14} /></button>
               </div>
               <div className="space-y-2">
@@ -176,14 +176,14 @@ export function CurrentlyReadingView({
                     <div key={session.id} className="utility-row">
                       <Calendar size={16} className="text-amber-500" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-slate-200">Pages {session.pageStart} – {session.pageEnd || session.pageStart}</div>
-                        <div className="text-xs text-slate-400">{session.notes || 'Logged reading time'}</div>
+                        <div className="text-sm font-semibold">Pages {session.pageStart} – {session.pageEnd || session.pageStart}</div>
+                        <div className="text-xs text-[var(--muted)]">{session.notes || 'Logged reading time'}</div>
                       </div>
                       <span className="text-xs font-mono text-amber-400">{session.minutes || 0} min</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-500 py-2">No reading sessions logged for this book yet.</p>
+                  <p className="text-xs text-[var(--muted)] py-2">No reading sessions logged for this book yet.</p>
                 )}
               </div>
             </section>
@@ -192,24 +192,24 @@ export function CurrentlyReadingView({
           {/* Right sidebar */}
           <div className="space-y-6">
             <section className="panel space-y-4">
-              <h2 className="text-lg font-bold text-white">Author Profile</h2>
+              <h2 className="text-lg font-bold">Author Profile</h2>
               <div className="flex items-center gap-3">
                 <img src={author.avatarUrl} alt={author.name} className="w-12 h-12 rounded-full object-cover border border-amber-500/30" />
                 <div>
-                  <h3 className="font-semibold text-white">{book.author}</h3>
-                  <p className="text-xs text-slate-400">Author</p>
+                  <h3 className="font-semibold">{book.author}</h3>
+                  <p className="text-xs text-[var(--muted)]">Author</p>
                 </div>
               </div>
-              <p className="text-xs text-slate-300">{author.bio}</p>
+              <p className="text-xs text-[var(--muted)]">{author.bio}</p>
             </section>
 
             <section className="panel space-y-3">
-              <h2 className="text-lg font-bold text-white">Metadata</h2>
-              <div className="text-xs space-y-2 text-slate-300 font-mono">
-                {book.isbn13 && <div className="flex justify-between"><span className="text-slate-500">ISBN-13</span><span>{book.isbn13}</span></div>}
-                {book.publisher && <div className="flex justify-between"><span className="text-slate-500">Publisher</span><span>{book.publisher}</span></div>}
-                <div className="flex justify-between"><span className="text-slate-500">Format</span><span className="capitalize">{book.format}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Language</span><span className="uppercase">{book.language || 'en'}</span></div>
+              <h2 className="text-lg font-bold">Metadata</h2>
+              <div className="text-xs space-y-2 text-[var(--muted)] font-mono">
+                {book.isbn13 && <div className="flex justify-between"><span>ISBN-13</span><span className="text-[var(--foreground)]">{book.isbn13}</span></div>}
+                {book.publisher && <div className="flex justify-between"><span>Publisher</span><span className="text-[var(--foreground)]">{book.publisher}</span></div>}
+                <div className="flex justify-between"><span>Format</span><span className="capitalize text-[var(--foreground)]">{book.format}</span></div>
+                <div className="flex justify-between"><span>Language</span><span className="uppercase text-[var(--foreground)]">{book.language || 'en'}</span></div>
               </div>
             </section>
           </div>
@@ -218,21 +218,21 @@ export function CurrentlyReadingView({
 
       {activeTab === 'progress' && (
         <section className="panel space-y-4">
-          <h2 className="text-lg font-bold text-white">Reading Progress Log</h2>
+          <h2 className="text-lg font-bold">Reading Progress Log</h2>
           <div className="space-y-3">
             {sessions.length > 0 ? (
               sessions.map(s => (
-                <div key={s.id} className="p-4 bg-slate-900/40 rounded-lg border border-white/5 space-y-2">
+                <div key={s.id} className="p-4 rounded-lg border border-[var(--border)] space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="font-semibold text-amber-500">{format(new Date(s.startedAt), 'MMM d, yyyy')}</span>
-                    <span className="text-slate-400">{s.minutes || 0} minutes logged</span>
+                    <span className="text-[var(--muted)]">{s.minutes || 0} minutes logged</span>
                   </div>
-                  <div className="text-sm text-slate-200">Read pages {s.pageStart} to {s.pageEnd || s.pageStart} ({(s.pageEnd || s.pageStart) - s.pageStart} pages)</div>
-                  {s.notes && <p className="text-xs text-slate-400 italic">“{s.notes}”</p>}
+                  <div className="text-sm">Read pages {s.pageStart} to {s.pageEnd || s.pageStart} ({(s.pageEnd || s.pageStart) - s.pageStart} pages)</div>
+                  {s.notes && <p className="text-xs text-[var(--muted)] italic">"{s.notes}"</p>}
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-500 py-4">No sessions logged yet.</p>
+              <p className="text-xs text-[var(--muted)] py-4">No sessions logged yet.</p>
             )}
           </div>
         </section>
@@ -241,27 +241,27 @@ export function CurrentlyReadingView({
       {activeTab === 'notes' && (
         <section className="panel space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">Notes & Highlights</h2>
+            <h2 className="text-lg font-bold">Notes & Highlights</h2>
             <button className="primary" onClick={onAddNote}><Plus size={16} /> Add Note</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {notes.length > 0 ? (
               notes.map(note => (
-                <div key={note.id} className="p-4 bg-slate-900/40 rounded-lg border border-white/5 space-y-2">
+                <div key={note.id} className="p-4 rounded-lg border border-[var(--border)] space-y-2">
                   <div className="flex items-center justify-between text-xs text-amber-500">
                     <span className="capitalize font-semibold">{note.type}</span>
                     {note.page && <span>Page {note.page}</span>}
                   </div>
-                  <p className="text-sm text-slate-200 leading-relaxed">“{note.text}”</p>
+                  <p className="text-sm text-[var(--foreground)] leading-relaxed">"{note.text}"</p>
                   <div className="flex flex-wrap gap-1 pt-1">
                     {note.tags.map(tag => (
-                      <span key={tag} className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">#{tag}</span>
+                      <span key={tag} className="genre-tag">#{tag}</span>
                     ))}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-500 col-span-2 py-4">No notes or quotes added for this book yet.</p>
+              <p className="text-xs text-[var(--muted)] col-span-2 py-4">No notes or quotes added for this book yet.</p>
             )}
           </div>
         </section>
@@ -269,23 +269,23 @@ export function CurrentlyReadingView({
 
       {activeTab === 'chapters' && (
         <section className="panel space-y-4">
-          <h2 className="text-lg font-bold text-white">Chapter Breakdown</h2>
+          <h2 className="text-lg font-bold">Chapter Breakdown</h2>
           <div className="space-y-2">
             {chapters.length > 0 ? (
               chapters.map(ch => (
-                <div key={ch.id} className="flex items-center justify-between p-3 bg-slate-900/40 rounded-lg border border-white/5 text-sm">
+                <div key={ch.id} className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)] text-sm">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 size={18} className={ch.completed ? 'text-amber-500' : 'text-slate-600'} />
+                    <CheckCircle2 size={18} className={ch.completed ? 'text-amber-500' : 'text-[var(--muted)]'} />
                     <div>
-                      <span className="font-semibold text-white">Chapter {ch.number}: {ch.title}</span>
-                      <span className="text-xs text-slate-400 block">Pages {ch.pageStart} – {ch.pageEnd}</span>
+                      <span className="font-semibold">Chapter {ch.number}: {ch.title}</span>
+                      <span className="text-xs text-[var(--muted)] block">Pages {ch.pageStart} – {ch.pageEnd}</span>
                     </div>
                   </div>
-                  <span className="text-xs font-mono text-slate-400">{ch.completed ? '100%' : `${ch.percentComplete}%`}</span>
+                  <span className="text-xs font-mono text-[var(--muted)]">{ch.completed ? '100%' : `${ch.percentComplete}%`}</span>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-500 py-4">Chapter breakdown not generated yet.</p>
+              <p className="text-xs text-[var(--muted)] py-4">Chapter breakdown not generated yet.</p>
             )}
           </div>
         </section>

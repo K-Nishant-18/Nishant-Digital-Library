@@ -47,13 +47,13 @@ export function ReadingLogsView({
   const totalPages = enrichedSessions.reduce((acc, s) => acc + s.pagesRead, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="eyebrow">Activity History</span>
-          <h1 className="text-2xl font-bold text-white">Reading Logs</h1>
-          <p className="text-xs text-slate-400">Detailed record of your reading sessions, pages logged, and time spent.</p>
+          <h1 className="text-2xl font-bold">Reading Logs</h1>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>Detailed record of your reading sessions, pages logged, and time spent.</p>
         </div>
 
         <button className="primary" onClick={onLogSession}>
@@ -63,32 +63,33 @@ export function ReadingLogsView({
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="panel space-y-1">
-          <span className="text-xs text-slate-400 uppercase font-semibold">Total Sessions</span>
-          <div className="text-2xl font-bold text-white font-mono">{sessions.length}</div>
-          <p className="text-[11px] text-amber-400">Logged in database</p>
+        <div className="stat-card">
+          <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Total Sessions</span>
+          <div className="text-3xl font-bold font-mono tracking-tight">{sessions.length}</div>
+          <p className="text-[11px] text-amber-500">Logged in database</p>
         </div>
-        <div className="panel space-y-1">
-          <span className="text-xs text-slate-400 uppercase font-semibold">Total Time Spent</span>
-          <div className="text-2xl font-bold text-white font-mono">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</div>
-          <p className="text-[11px] text-amber-400">Avg {Math.round(totalMinutes / (sessions.length || 1))} min/session</p>
+        <div className="stat-card">
+          <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Total Time Spent</span>
+          <div className="text-3xl font-bold font-mono tracking-tight">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</div>
+          <p className="text-[11px] text-amber-500">Avg {Math.round(totalMinutes / (sessions.length || 1))} min/session</p>
         </div>
-        <div className="panel space-y-1">
-          <span className="text-xs text-slate-400 uppercase font-semibold">Pages Logged</span>
-          <div className="text-2xl font-bold text-white font-mono">{totalPages.toLocaleString()}</div>
-          <p className="text-[11px] text-amber-400">Avg {Math.round(totalPages / (sessions.length || 1))} pages/session</p>
+        <div className="stat-card">
+          <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Pages Logged</span>
+          <div className="text-3xl font-bold font-mono tracking-tight">{totalPages.toLocaleString()}</div>
+          <p className="text-[11px] text-amber-500">Avg {Math.round(totalPages / (sessions.length || 1))} pages/session</p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="panel flex flex-col sm:flex-row gap-4 items-center justify-between p-4 rounded-xl">
         <div className="relative w-full sm:w-72">
-          <Search size={15} className="absolute left-3 top-2.5 text-slate-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search sessions or notes..."
-            className="w-full bg-slate-950 border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white outline-none focus:border-amber-500/50"
+            className="w-full rounded-lg pl-9 pr-4 py-2 text-sm outline-none"
+            style={{ background: 'var(--faint)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
           />
         </div>
 
@@ -96,9 +97,10 @@ export function ReadingLogsView({
           {(['all', 'this-week', 'this-month'] as const).map(f => (
             <button
               key={f}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize ${
-                filter === f ? 'bg-amber-500 text-black' : 'bg-slate-900 text-slate-400 border border-white/5'
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                filter === f ? 'bg-amber-500 text-black' : ''
               }`}
+              style={filter !== f ? { background: 'var(--faint)', color: 'var(--muted)', border: '1px solid var(--border)' } : undefined}
               onClick={() => setFilter(f)}
             >
               {f.replace('-', ' ')}
@@ -108,52 +110,54 @@ export function ReadingLogsView({
       </div>
 
       {/* Sessions Timeline List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {filteredSessions.length > 0 ? (
           filteredSessions.map(session => {
             const dateObj = new Date(session.startedAt);
             const dateStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recently';
             return (
-              <div key={session.id} className="panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-amber-500/30 transition-colors">
-                <div className="flex items-center gap-3">
+              <div key={session.id} className="panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-amber-500/30 transition-colors p-4 rounded-xl">
+                <div className="flex items-center gap-4">
                   {session.book?.coverUrl ? (
-                    <img src={session.book.coverUrl} alt={session.book.title} className="w-10 h-14 object-cover rounded shadow bg-slate-800" />
+                    <img src={session.book.coverUrl} alt={session.book.title} className="w-10 h-14 object-cover rounded shadow" style={{ background: 'var(--faint)' }} />
                   ) : (
-                    <div className="w-10 h-14 bg-slate-800 rounded flex items-center justify-center text-slate-500">
+                    <div className="w-12 h-18 rounded-lg flex items-center justify-center shadow-inner" style={{ background: 'var(--faint)', color: 'var(--muted)' }}>
                       <BookOpen size={16} />
                     </div>
                   )}
                   <div>
-                    <h3 className="text-sm font-bold text-white">{session.book?.title || 'Reading Session'}</h3>
-                    <p className="text-xs text-slate-400">{session.book?.author || 'Unknown Author'}</p>
+                    <h3 className="text-sm font-bold">{session.book?.title || 'Reading Session'}</h3>
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>{session.book?.author || 'Unknown Author'}</p>
                     {session.notes && (
-                      <p className="text-xs text-amber-200/80 italic mt-1 font-serif">"{session.notes}"</p>
+                      <p className="text-xs italic mt-1.5 font-serif px-2 py-1 rounded" style={{ background: 'var(--amber-soft)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>
+                        "{session.notes}"
+                      </p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 text-xs text-slate-400 border-t sm:border-t-0 pt-2 sm:pt-0 w-full sm:w-auto justify-between">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-6 text-sm border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto justify-between" style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}>
+                  <div className="flex items-center gap-2">
                     <CalendarDays size={14} className="text-amber-500" />
                     <span>{dateStr}</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <BookOpen size={14} className="text-amber-500" />
-                    <span className="font-mono text-white font-semibold">+{session.pagesRead} pages</span>
+                    <span className="font-mono font-semibold" style={{ color: 'var(--foreground)' }}>+{session.pagesRead} pages</span>
                     <span>(p. {session.pageStart}-{session.pageEnd || session.pageStart})</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <Clock size={14} className="text-amber-500" />
-                    <span className="font-mono text-white font-semibold">{session.minutes || 30} mins</span>
+                    <span className="font-mono font-semibold" style={{ color: 'var(--foreground)' }}>{session.minutes || 30} mins</span>
                   </div>
                 </div>
               </div>
             );
           })
         ) : (
-          <p className="text-xs text-slate-500 text-center py-8">No reading logs found.</p>
+          <p className="text-xs text-center py-8" style={{ color: 'var(--muted)' }}>No reading logs found.</p>
         )}
       </div>
     </div>

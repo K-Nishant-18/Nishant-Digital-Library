@@ -478,49 +478,57 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
       {/* Add Book Modal with API Lookup */}
       {modal === 'add' && (
         <div className="search-overlay" role="dialog">
-          <div className="search-modal space-y-4 max-w-xl">
+          <div className="search-modal space-y-5 max-w-xl">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h2 className="text-lg font-bold text-white">Add a Book to Library</h2>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <BookOpen size={20} className="text-amber-500" /> Add a Book to Library
+              </h2>
               <button className="close" onClick={() => setModal(null)}><X size={18} /></button>
             </div>
 
             <div className="flex gap-2">
-              <input
-                value={apiSearch}
-                onChange={e => setApiSearch(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleApiSearch()}
-                placeholder="Search Open Library by title, ISBN, or author..."
-                className="flex-1 bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
-              />
-              <button className="primary text-xs" onClick={handleApiSearch} disabled={loadingApi}>
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={apiSearch}
+                  onChange={e => setApiSearch(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleApiSearch()}
+                  placeholder="Search Google Books by title, author, or ISBN..."
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-amber-500/50"
+                />
+              </div>
+              <button className="primary text-xs !py-2.5 !px-4 shrink-0" onClick={handleApiSearch} disabled={loadingApi}>
                 {loadingApi ? 'Searching...' : 'Search Online'}
               </button>
             </div>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto pt-2">
+            <div className="space-y-2 max-h-72 overflow-y-auto pt-1">
               {apiResults.length > 0 ? (
                 apiResults.map(book => (
-                  <div key={book.id} className="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-lg border border-white/5 text-xs">
-                    <div className="flex items-center gap-3">
-                      <img src={book.coverUrl} alt={book.title} className="w-9 h-12 object-cover rounded bg-slate-800" />
-                      <div>
-                        <h4 className="font-semibold text-white">{book.title}</h4>
-                        <p className="text-slate-400">{book.author} ({book.publishedYear || 'N/A'})</p>
+                  <div key={book.id} className="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-white/5 text-xs hover:border-amber-500/30 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img src={book.coverUrl} alt={book.title} className="w-10 h-14 object-cover rounded shadow bg-slate-800 shrink-0" />
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-white truncate">{book.title}</h4>
+                        <p className="text-slate-400 truncate">{book.author} ({book.publishedYear || 'N/A'})</p>
+                        <span className="text-[10px] text-amber-500/80 font-mono mt-0.5 block">{book.pageCount} pages</span>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <button className="outline-button text-xs !py-1 !px-2" onClick={() => handleAddBookToDb(book, 'tbr')}>
+                    <div className="flex gap-1.5 shrink-0 ml-2">
+                      <button className="outline-button text-xs !py-1.5 !px-2.5" onClick={() => handleAddBookToDb(book, 'tbr')}>
                         TBR Queue
                       </button>
-                      <button className="primary text-xs !py-1 !px-2.5" onClick={() => handleAddBookToDb(book, 'reading')}>
+                      <button className="primary text-xs !py-1.5 !px-3" onClick={() => handleAddBookToDb(book, 'reading')}>
                         <Plus size={14} /> Reading
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 text-xs text-slate-500">
-                  Search millions of books online or enter title above.
+                <div className="text-center py-8 text-xs text-slate-400 space-y-1">
+                  <Search size={24} className="mx-auto text-slate-600 mb-2" />
+                  <p className="font-medium text-slate-300">Search millions of titles online</p>
+                  <p className="text-[11px] text-slate-500">Type a book name, author, or ISBN above to discover and save to your Neon DB library.</p>
                 </div>
               )}
             </div>
@@ -531,23 +539,25 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
       {/* Log Reading Session Modal */}
       {modal === 'session' && (
         <div className="search-overlay" role="dialog">
-          <div className="search-modal space-y-4">
+          <div className="search-modal space-y-5">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h2 className="text-lg font-bold text-white">Log Reading Session</h2>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <CalendarDays size={20} className="text-amber-500" /> Log Reading Session
+              </h2>
               <button className="close" onClick={() => setModal(null)}><X size={18} /></button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">Select Book</label>
+                <label className="text-slate-300 font-semibold block mb-1.5">Select Book</label>
                 <select
                   value={selectedEntryForSession || activeCurrentlyReadingEntry?.id}
                   onChange={e => setSelectedEntryForSession(e.target.value)}
-                  className="w-full bg-slate-950 border border-white/10 rounded-lg p-2.5 text-white outline-none"
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-amber-500/50"
                 >
                   {entries.map(e => (
                     <option key={e.id} value={e.id}>
-                      {e.book?.title} ({e.status})
+                      {e.book?.title} ({e.status.toUpperCase()})
                     </option>
                   ))}
                 </select>
@@ -555,67 +565,52 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-400 block mb-1">New Current Page</label>
+                  <label className="text-slate-300 font-semibold block mb-1.5">New Current Page</label>
                   <input
                     type="number"
                     value={sessionPages}
                     onChange={e => setSessionPages(e.target.value)}
                     placeholder="e.g. 235"
-                    className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-white outline-none"
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-amber-500/50"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 block mb-1">Time Spent (Minutes)</label>
+                  <label className="text-slate-300 font-semibold block mb-1.5">Time Spent (Minutes)</label>
                   <input
                     type="number"
                     value={sessionMinutes}
                     onChange={e => setSessionMinutes(e.target.value)}
-                    className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-white outline-none"
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-amber-500/50"
                   />
                 </div>
               </div>
 
-              <button className="primary full pt-2" onClick={handleSaveSessionToDb}>
-                Save Progress to Database
+              <button className="primary full !py-2.5 text-xs font-bold mt-2" onClick={handleSaveSessionToDb}>
+                <Flame size={16} /> Save Progress to Database
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit Book Modal */}
-      {modal === 'edit' && editingEntry && (
-        <BookEditModal
-          entry={editingEntry}
-          onClose={() => {
-            setModal(null);
-            setEditingEntry(null);
-          }}
-          onSave={() => {
-            setModal(null);
-            setEditingEntry(null);
-            // Refresh data by reloading the page
-            window.location.reload();
-          }}
-        />
-      )}
-
       {/* Add Note Modal */}
       {modal === 'note' && (
         <div className="search-overlay" role="dialog">
-          <div className="search-modal space-y-4">
+          <div className="search-modal space-y-5">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h2 className="text-lg font-bold text-white">Add Note / Quote</h2>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Bookmark size={20} className="text-amber-500" /> Add Note / Quote
+              </h2>
               <button className="close" onClick={() => setModal(null)}><X size={18} /></button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">Select Book</label>
+                <label className="text-slate-300 font-semibold block mb-1.5">Select Book</label>
                 <select
                   value={selectedEntryForNote || activeCurrentlyReadingEntry?.id}
                   onChange={e => setSelectedEntryForNote(e.target.value)}
-                  className="w-full bg-slate-950 border border-white/10 rounded-lg p-2.5 text-white outline-none"
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-amber-500/50"
                 >
                   {entries.map(e => (
                     <option key={e.id} value={e.id}>
@@ -625,44 +620,47 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 </select>
               </div>
 
-              <div className="flex gap-2">
-                {['quote', 'reflection', 'note'].map(type => (
-                  <button
-                    key={type}
-                    className={`flex-1 py-1.5 rounded-lg capitalize text-xs font-semibold ${
-                      noteType === type ? 'bg-amber-500 text-black' : 'bg-slate-900 text-slate-400'
-                    }`}
-                    onClick={() => setNoteType(type)}
-                  >
-                    {type}
-                  </button>
-                ))}
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1.5">Type</label>
+                <div className="flex gap-2">
+                  {['quote', 'reflection', 'note'].map(type => (
+                    <button
+                      key={type}
+                      className={`flex-1 py-2 rounded-xl capitalize text-xs font-bold transition-all ${
+                        noteType === type ? 'bg-amber-500 text-black shadow-md' : 'bg-slate-900 text-slate-400 border border-white/5'
+                      }`}
+                      onClick={() => setNoteType(type)}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1">Content / Line</label>
+                <label className="text-slate-300 font-semibold block mb-1.5">Content / Line</label>
                 <textarea
                   rows={3}
                   value={noteText}
                   onChange={e => setNoteText(e.target.value)}
-                  placeholder="Enter quote or thought..."
-                  className="w-full bg-slate-950 border border-white/10 rounded-lg p-3 text-white outline-none"
+                  placeholder="Enter memorable quote, insight, or chapter reflection..."
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-amber-500/50"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1">Page Number (Optional)</label>
+                <label className="text-slate-300 font-semibold block mb-1.5">Page Number (Optional)</label>
                 <input
                   type="number"
                   value={notePage}
                   onChange={e => setNotePage(e.target.value)}
                   placeholder="e.g. 142"
-                  className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-white outline-none"
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-amber-500/50"
                 />
               </div>
 
-              <button className="primary full pt-2" onClick={handleSaveNoteToDb}>
-                Save Note to Database
+              <button className="primary full !py-2.5 text-xs font-bold mt-2" onClick={handleSaveNoteToDb}>
+                <Check size={16} /> Save Note to Database
               </button>
             </div>
           </div>
