@@ -264,6 +264,7 @@ export default function LibraryDashboard() {
               setActive={setActive}
               onAddBook={() => setModal('add')}
               onLogSession={() => setModal('session')}
+              onAddNote={() => setModal('note')}
             />
           )}
 
@@ -520,11 +521,13 @@ export default function LibraryDashboard() {
 function DashboardView({
   setActive,
   onAddBook,
-  onLogSession
+  onLogSession,
+  onAddNote
 }: {
   setActive: (val: string) => void;
   onAddBook: () => void;
   onLogSession: () => void;
+  onAddNote: () => void;
 }) {
   const tbrBooks = [
     { title: 'Dune', author: 'Frank Herbert', cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80' },
@@ -787,21 +790,102 @@ function DashboardView({
               </button>
             </div>
           </div>
+
+          {/* Recent Reading Activity - below Pace & Genre, left of Calendar */}
+          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Recent Reading Activity</span>
+              <button
+                className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1 font-medium"
+                onClick={() => setActive('Reading Logs')}
+              >
+                View all logs <ChevronRight size={13} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Activity Item 1 */}
+              <div className="flex gap-3 items-start">
+                <div className="w-12 h-16 rounded bg-slate-800 overflow-hidden shrink-0 shadow-md border border-white/5">
+                  <img
+                    src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80"
+                    alt="The Name of the Wind"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-sm font-semibold text-white">The Name of the Wind</h4>
+                    <span className="text-[10px] text-slate-500">May 23, 2024 • 9:30 PM</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">Session: 45 pages (p. 411-456)</p>
+                  <div className="mt-2 p-2 bg-slate-900/50 rounded border border-white/5 text-xs">
+                    <p className="text-slate-300">"The important thing is not what you write, but that you write. The water does not care what shape the cup is."</p>
+                    <p className="text-[10px] text-amber-400 mt-1">— Quote from page 423</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity Item 2 */}
+              <div className="flex gap-3 items-start">
+                <div className="w-12 h-16 rounded bg-slate-800 overflow-hidden shrink-0 shadow-md border border-white/5">
+                  <img
+                    src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&q=80"
+                    alt="The Way of Kings"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-sm font-semibold text-white">The Way of Kings</h4>
+                    <span className="text-[10px] text-slate-500">May 22, 2024 • 10:15 PM</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">Session: 32 pages (p. 892-924)</p>
+                  <div className="mt-2 p-2 bg-slate-900/50 rounded border border-white/5 text-xs">
+                    <p className="text-slate-300">Finished Part Four! Kaladin's journey is getting so intense. The bridge runs are heartbreaking but inspiring.</p>
+                    <p className="text-[10px] text-slate-500 mt-1">— Reading reflection</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity Item 3 */}
+              <div className="flex gap-3 items-start">
+                <div className="w-12 h-16 rounded bg-slate-800 overflow-hidden shrink-0 shadow-md border border-white/5">
+                  <img
+                    src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80"
+                    alt="The Silent Patient"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-sm font-semibold text-white">The Silent Patient</h4>
+                    <span className="text-[10px] text-slate-500">May 20, 2024 • 8:45 PM</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">Session: 25 pages (p. 187-212)</p>
+                  <div className="mt-2 p-2 bg-slate-900/50 rounded border border-white/5 text-xs">
+                    <p className="text-slate-300">The twist about Alicia's diary entries is chilling. I need to reread this section to catch all the clues I missed.</p>
+                    <p className="text-[10px] text-slate-500 mt-1">— Reading note</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Currently Reading + Quick Actions + Calendar */}
         <div className="space-y-4">
-          {/* Currently Reading Card */}
-          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-3">
+          {/* Currently Reading Card - Expanded */}
+<div className="bg-[#141618] border border-[#232629] rounded-lg p-6 space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Currently Reading</span>
+              <span className="text-[12px] font-bold tracking-wider text-slate-400 uppercase">Currently Reading</span>
               <button className="text-slate-500 hover:text-slate-300">
-                <Sliders size={13} />
+                <Sliders size={16} />
               </button>
             </div>
 
-            <div className="flex gap-3.5 items-start pt-1">
-              <div className="w-24 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
+            <div className="flex gap-4 items-start pt-1">
+              <div className="w-32 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
                 <img
                   src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80"
                   alt="The Name of the Wind"
@@ -809,65 +893,93 @@ function DashboardView({
                 />
               </div>
 
-              <div className="space-y-2 flex-1">
+              <div className="space-y-3 flex-1">
                 <div>
-                  <h3 className="text-sm font-bold text-white leading-tight">The Name of the Wind</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Patrick Rothfuss</p>
+                  <h3 className="text-base font-bold text-white leading-tight">The Name of the Wind</h3>
+                  <p className="text-sm text-slate-400 mt-0.5">Patrick Rothfuss</p>
                 </div>
 
-                <div className="space-y-1">
-                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                <div className="space-y-1.5">
+                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
                     <div className="h-full bg-amber-500 rounded-full" style={{ width: '65%' }} />
                   </div>
-                  <div className="text-right text-[10px] text-amber-400 font-semibold">65%</div>
+                  <div className="text-right text-[12px] text-amber-400 font-semibold">65%</div>
                 </div>
 
                 <button
-                  className="w-full bg-[#232628] hover:bg-[#2c3033] text-white text-xs font-semibold py-1.5 rounded transition-colors"
+                  className="w-full bg-[#232628] hover:bg-[#2c3033] text-white text-sm font-semibold py-2 rounded transition-colors"
                   onClick={() => setActive('Currently Reading')}
                 >
                   Continue Reading
                 </button>
 
-                <div className="text-[10px] text-slate-400 space-y-0.5 pt-0.5">
+                <div className="text-[12px] text-slate-400 space-y-0.5 pt-0.5">
                   <p>Page 456 / 704</p>
                   <p>Started on May 10, 2024</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Reading Insights Section */}
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Reading Insights</span>
+                <button className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1 font-medium">
+                  View details <ChevronRight size={13} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5">
+                  <div className="text-[10px] text-slate-400 font-medium">Sessions</div>
+                  <div className="text-xl font-bold text-white mt-1">12</div>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5">
+                  <div className="text-[10px] text-slate-400 font-medium">Time Spent</div>
+                  <div className="text-xl font-bold text-white mt-1">14h 32m</div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Recent Notes & Quotes</span>
+                  <button className="text-xs text-amber-500 hover:text-amber-400 font-medium" onClick={onAddNote}>
+                    Add note +
+                  </button>
+                </div>
+
+                <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-xs">
+                  <p className="text-slate-300">"The important thing is not what you write, but that you write. The water does not care what shape the cup is."</p>
+                  <p className="text-[10px] text-amber-400 mt-2">— Quote from page 423</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Quick Actions Card */}
-          <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-2.5">
+          <div className="bg-[#141618] border border-[#232629] rounded-lg p-3 space-y-1.5">
             <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase block">Quick Actions</span>
-            <div className="space-y-1 pt-1">
+            <div className="space-y-0.5 pt-0.5">
               <button
-                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                className="w-full flex items-center justify-between p-1.5 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
                 onClick={onAddBook}
               >
                 <span>Add a New Book</span>
                 <Plus size={14} className="text-slate-400" />
               </button>
               <button
-                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                className="w-full flex items-center justify-between p-1.5 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
                 onClick={onLogSession}
               >
                 <span>Log a Reading Session</span>
                 <CalendarDays size={14} className="text-slate-400" />
               </button>
               <button
-                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
+                className="w-full flex items-center justify-between p-1.5 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
                 onClick={() => setActive('Notes & Quotes')}
               >
                 <span>Write a Reading Log</span>
                 <Bookmark size={14} className="text-slate-400" />
-              </button>
-              <button
-                className="w-full flex items-center justify-between p-2 rounded hover:bg-white/5 text-xs text-slate-300 transition-colors"
-                onClick={() => setActive('Overview')}
-              >
-                <span>View Analytics</span>
-                <TrendingUp size={14} className="text-slate-400" />
               </button>
             </div>
           </div>
@@ -907,98 +1019,7 @@ function DashboardView({
         </div>
       </div>
 
-      {/* Bottom Wide Panel: VIRTUAL LIBRARY Realistic Wood Shelf */}
-      <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 space-y-4">
-        {/* Controls Header */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">Virtual Library</span>
-          <div className="flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-1 text-slate-400">
-              <span>View:</span>
-              <button className="p-1 text-slate-400 hover:text-white"><Grid2X2 size={14} /></button>
-              <button className="p-1 text-amber-500"><BookOpen size={14} /></button>
-              <button className="p-1 text-slate-400 hover:text-white"><Filter size={14} /></button>
-            </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <span>Sort by:</span>
-              <select className="bg-[#1c1e20] border border-[#2e3134] text-slate-300 text-[11px] rounded px-2 py-0.5 outline-none">
-                <option>Title</option>
-                <option>Author</option>
-                <option>Recent</option>
-              </select>
-            </div>
-            <button className="bg-[#1c1e20] border border-[#2e3134] px-2.5 py-0.5 rounded text-slate-300 hover:text-white">
-              Filter
-            </button>
-          </div>
-        </div>
 
-        {/* Realistic Wooden Shelf Stage */}
-        <div className="relative bg-gradient-to-b from-[#110d0a] via-[#1a120b] to-[#120c07] rounded-lg p-6 pt-10 border border-[#3d2616] overflow-hidden shadow-2xl">
-          {/* Wood Grain & Shelf Background Depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-950/20 via-black/60 to-black/90 pointer-events-none" />
-
-          {/* Book Spines Container */}
-          <div className="relative z-10 flex items-end justify-center gap-2 sm:gap-3.5 overflow-x-auto pb-3 min-h-[200px]">
-            {/* Left Decorative Plant */}
-            <div className="hidden sm:flex flex-col items-center justify-end mr-4 text-emerald-800/80">
-              <div className="w-10 h-10 bg-emerald-950/60 rounded-full border border-emerald-700/30 flex items-center justify-center shadow-lg">
-                🪴
-              </div>
-              <div className="w-7 h-5 bg-amber-900/60 rounded-b-md border border-amber-950" />
-            </div>
-
-            {/* Book Spines */}
-            {spineBooks.map((spine, idx) => (
-              <div
-                key={idx}
-                className="group relative cursor-pointer flex flex-col justify-between items-center rounded-sm transition-all duration-200 hover:-translate-y-2 hover:shadow-2xl shrink-0"
-                style={{
-                  width: '32px',
-                  height: `${spine.height}px`,
-                  backgroundColor: spine.color,
-                  boxShadow: 'inset 3px 0 6px rgba(255,255,255,0.15), inset -3px 0 6px rgba(0,0,0,0.6), 4px 4px 10px rgba(0,0,0,0.8)',
-                  borderLeft: '1px solid rgba(255,255,255,0.1)',
-                  borderRight: '1px solid rgba(0,0,0,0.4)',
-                }}
-                onClick={() => setActive('Currently Reading')}
-              >
-                {/* Gold Spine Lines top/bottom */}
-                <div className="w-full h-1 border-y border-amber-500/40 opacity-70 mt-2" />
-
-                {/* Vertical Spine Title */}
-                <span
-                  className="font-serif font-bold text-[10px] tracking-wider uppercase whitespace-nowrap overflow-hidden text-ellipsis px-1 select-none"
-                  style={{
-                    writingMode: 'vertical-rl',
-                    transform: 'rotate(180deg)',
-                    color: spine.text,
-                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                  }}
-                >
-                  {spine.title}
-                </span>
-
-                <div className="w-full h-1 border-y border-amber-500/40 opacity-70 mb-2" />
-              </div>
-            ))}
-
-            {/* Right Vintage Lantern */}
-            <div className="hidden sm:flex flex-col items-center justify-end ml-4 text-amber-500/80">
-              <div className="w-8 h-12 bg-amber-950/40 rounded-t-full border border-amber-600/40 flex items-center justify-center shadow-amber-500/20 shadow-xl">
-                🕯️
-              </div>
-            </div>
-          </div>
-
-          {/* Solid Wooden Shelf Bar */}
-          <div className="relative z-10 h-5 bg-gradient-to-r from-[#422513] via-[#633a1e] to-[#422513] border-t-2 border-[#8c532b] shadow-2xl rounded-sm flex items-center justify-center">
-            <span className="bg-[#1e120a] text-amber-400/90 text-[10px] font-bold px-3 py-0.5 rounded-full border border-amber-800/40 shadow-inner">
-              34 books
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+     </div>
+   );
 }
