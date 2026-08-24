@@ -7,7 +7,10 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 
 # Environment variables
+.env
 .env*.local
+.env.*
+
 
 # Common ignores
 node_modules

@@ -6,15 +6,25 @@ import {
   ChevronRight, Filter, BookOpen, Share2, Copy, Check
 } from 'lucide-react';
 import { mockNotes, mockBooks, mockTags } from '@/lib/data';
-import type { NoteType } from '@/lib/types';
+import type { Note, Book } from '@/lib/types';
 import { format } from 'date-fns';
 
 interface NotesJournalProps {
   onAddNote: () => void;
   activeTab?: string;
+  notes?: Note[];
+  books?: Book[];
 }
 
-export function NotesJournalView({ onAddNote, activeTab = 'Notes & Quotes' }: NotesJournalProps) {
+export function NotesJournalView({ 
+  onAddNote, 
+  activeTab = 'Notes & Quotes',
+  notes: dbNotes,
+  books: dbBooks,
+}: NotesJournalProps) {
+  const notes = dbNotes || mockNotes;
+  const books = dbBooks || mockBooks;
+
   const [searchQuery, setSearchQuery] = useState('');
   
   // Map parent activeTab to type filter
@@ -23,11 +33,11 @@ export function NotesJournalView({ onAddNote, activeTab = 'Notes & Quotes' }: No
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const filteredNotes = mockNotes.filter(note => {
+  const filteredNotes = notes.filter(note => {
     const matchesSearch = note.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          note.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+                          (note.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = activeType === 'all' || note.type === activeType;
-    const matchesTag = !selectedTag || note.tags.includes(selectedTag);
+    const matchesTag = !selectedTag || (note.tags || []).includes(selectedTag);
     return matchesSearch && matchesType && matchesTag;
   });
 
@@ -96,7 +106,7 @@ export function NotesJournalView({ onAddNote, activeTab = 'Notes & Quotes' }: No
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredNotes.map(note => {
-                const book = mockBooks.find(b => b.id === '1') || mockBooks[0]; // Sample book binding
+                const book = books.find(b => b.id === note.libraryEntryId) || books[0];
                 return (
                   <div key={note.id} className="panel space-y-3 relative group hover:border-amber-500/30 transition-all">
                     <div className="flex items-center justify-between text-xs">
@@ -127,11 +137,11 @@ export function NotesJournalView({ onAddNote, activeTab = 'Notes & Quotes' }: No
                     <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
                       <div className="flex items-center gap-2">
                         <BookOpen size={13} className="text-amber-500" />
-                        <span className="font-medium text-slate-300 truncate max-w-[160px]">{book.title}</span>
+                        <span className="font-medium text-slate-300 truncate max-w-[160px]">{book?.title || 'My Library Book'}</span>
                       </div>
 
                       <div className="flex flex-wrap gap-1">
-                        {note.tags.map(t => (
+                        {(note.tags || []).map(t => (
                           <span key={t} className="text-[10px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-white/5">
                             #{t}
                           </span>

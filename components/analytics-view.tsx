@@ -5,6 +5,7 @@ import {
   TrendingUp, Flame, Calendar, Award, BarChart3, PieChart, Clock, BookOpen, Star, Filter, Tags
 } from 'lucide-react';
 import { mockStats, mockReadingGoal } from '@/lib/data';
+import type { ReadingStats, ReadingGoal } from '@/lib/types';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell
 } from 'recharts';
@@ -12,9 +13,11 @@ import {
 interface AnalyticsViewProps {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  stats?: ReadingStats;
+  goal?: ReadingGoal;
 }
 
-export function AnalyticsView({ activeTab = 'Overview', onTabChange }: AnalyticsViewProps) {
+export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbStats, goal: dbGoal }: AnalyticsViewProps) {
   const [selectedYear, setSelectedYear] = useState('2026');
   const [currentTab, setCurrentTab] = useState(activeTab);
 
@@ -29,9 +32,9 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
     onTabChange?.(tab);
   };
 
-  const stats = mockStats;
-  const goal = mockReadingGoal;
-  const goalPercent = Math.round((stats.booksThisYear / goal.targetBooks) * 100);
+  const stats = dbStats || mockStats;
+  const goal = dbGoal || mockReadingGoal;
+  const goalPercent = Math.min(100, Math.round(((stats.booksThisYear || 0) / (goal.targetBooks || 1)) * 100));
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
 
@@ -91,7 +94,7 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
           <div className="bg-slate-900/60 rounded-xl p-4 border border-white/5 grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-medium">Annual Goal</span>
-              <div className="text-xl font-bold text-amber-500 font-mono">{stats.booksThisYear} / {goal.targetBooks} books</div>
+              <div className="text-xl font-bold text-amber-500 font-mono">{stats.booksThisYear || 0} / {goal.targetBooks} books</div>
               <div className="progress">
                 <span style={{ width: `${goalPercent}%` }} />
               </div>
@@ -100,23 +103,23 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
 
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-medium">Total Pages Read</span>
-              <div className="text-xl font-bold text-white font-mono">{stats.pagesThisYear.toLocaleString()}</div>
-              <span className="text-[11px] text-slate-500">Avg {stats.averagePagesPerDay} pages / day</span>
+              <div className="text-xl font-bold text-white font-mono">{(stats.pagesThisYear || 0).toLocaleString()}</div>
+              <span className="text-[11px] text-slate-500">Avg {stats.averagePagesPerDay || 0} pages / day</span>
             </div>
 
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-medium">Reading Time</span>
-              <div className="text-xl font-bold text-white font-mono">{Math.round(stats.readingTimeMinutes / 60)}h {stats.readingTimeMinutes % 60}m</div>
-              <span className="text-[11px] text-slate-500">~{stats.averagePagesPerHour} pages / hour</span>
+              <div className="text-xl font-bold text-white font-mono">{Math.floor((stats.readingTimeMinutes || 0) / 60)}h {(stats.readingTimeMinutes || 0) % 60}m</div>
+              <span className="text-[11px] text-slate-500">~{stats.averagePagesPerHour || 0} pages / hour</span>
             </div>
 
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-medium">Streak Record</span>
               <div className="text-xl font-bold text-amber-400 font-mono flex items-center gap-1">
                 <Flame size={18} className="fill-amber-400" />
-                {stats.currentStreak} days
+                {stats.currentStreak || 0} days
               </div>
-              <span className="text-[11px] text-slate-500">Longest: {stats.longestStreak} days</span>
+              <span className="text-[11px] text-slate-500">Longest: {stats.longestStreak || 0} days</span>
             </div>
           </div>
         )}
@@ -130,12 +133,12 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
               <h2 className="text-lg font-bold text-white">Monthly Reading Volume</h2>
               <p className="text-xs text-slate-400">Pages read each month in {selectedYear}</p>
             </div>
-            <span className="text-xs font-mono text-amber-500">Peak: Aug (920 pages)</span>
+            <span className="text-xs font-mono text-amber-500">Live Database Sync</span>
           </div>
 
           <div className="h-64 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.monthlyPages}>
+              <AreaChart data={stats.monthlyPages || []}>
                 <defs>
                   <linearGradient id="pageGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
@@ -161,7 +164,7 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
           <section className="panel space-y-4">
             <h2 className="text-lg font-bold text-white">Genre Breakdown</h2>
             <div className="space-y-3">
-              {stats.genreDistribution.map((genre, idx) => (
+              {(stats.genreDistribution || []).map((genre, idx) => (
                 <div key={genre.genre} className="space-y-1">
                   <div className="flex justify-between text-xs text-slate-300 font-medium">
                     <span className="flex items-center gap-2">
@@ -182,7 +185,7 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
             <h2 className="text-lg font-bold text-white">Rating Distribution</h2>
             <div className="h-48 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.ratingDistribution}>
+                <BarChart data={stats.ratingDistribution || []}>
                   <XAxis dataKey="rating" stroke="#64748b" fontSize={12} tickFormatter={val => `${val}★`} />
                   <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                   <Tooltip 
@@ -190,7 +193,7 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
                     formatter={(value: any) => [`${value} books`, 'Count']}
                   />
                   <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]}>
-                    {stats.ratingDistribution.map((entry, index) => (
+                    {(stats.ratingDistribution || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={index === 0 ? '#f59e0b' : '#3b82f6'} />
                     ))}
                   </Bar>
@@ -209,11 +212,11 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange }: Analytics
               <h2 className="text-lg font-bold text-white">90-Day Reading Heatmap</h2>
               <p className="text-xs text-slate-400">Consistency across past 3 months</p>
             </div>
-            <span className="text-xs text-amber-500 font-mono">12 Day Active Streak</span>
+            <span className="text-xs text-amber-500 font-mono">{stats.currentStreak || 0} Day Active Streak</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5 pt-2">
-            {stats.heatmapData.map((day, i) => {
+            {(stats.heatmapData || []).map((day, i) => {
               const intensity = day.minutes === 0 ? 'bg-slate-800' : day.minutes < 30 ? 'bg-amber-900/60' : day.minutes < 45 ? 'bg-amber-600' : 'bg-amber-500';
               return (
                 <div 

@@ -6,30 +6,44 @@ import {
   Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers
 } from 'lucide-react';
 import { mockBooks, mockShelves, mockLibraryEntries } from '@/lib/data';
-import type { Book, Shelf, BookStatus } from '@/lib/types';
+import type { Book, Shelf, LibraryEntry } from '@/lib/types';
 
 interface VirtualLibraryProps {
   onSelectBook: (book: Book) => void;
   onAddBook: () => void;
   initialStatus?: string;
+  books?: Book[];
+  entries?: LibraryEntry[];
+  shelves?: Shelf[];
 }
 
-export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'all' }: VirtualLibraryProps) {
+export function VirtualLibraryView({ 
+  onSelectBook, 
+  onAddBook, 
+  initialStatus = 'all',
+  books: dbBooks,
+  entries: dbEntries,
+  shelves: dbShelves,
+}: VirtualLibraryProps) {
+  const books = dbBooks || mockBooks;
+  const entries = dbEntries || mockLibraryEntries;
+  const shelves = dbShelves || mockShelves;
+
   const [viewMode, setViewMode] = useState<'grid' | 'shelf' | 'list'>('grid');
-  const [selectedShelf, setSelectedShelf] = useState<string>('shelf-1'); // All Books
+  const [selectedShelf, setSelectedShelf] = useState<string>(shelves[0]?.id || 'shelf-1');
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const currentShelf = mockShelves.find(s => s.id === selectedShelf) || mockShelves[0];
+  const currentShelf = shelves.find(s => s.id === selectedShelf) || shelves[0];
 
-  const filteredBooks = mockBooks.filter(book => {
-    const matchesSearch = `${book.title} ${book.author} ${book.genres.join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredBooks = books.filter(book => {
+    const matchesSearch = `${book.title} ${book.author} ${(book.genres || []).join(' ')}`.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Check shelf match
-    const inShelf = selectedShelf === 'shelf-1' || currentShelf.bookIds.includes(book.id);
+    const inShelf = !currentShelf || currentShelf.isDefault || (currentShelf.bookIds || []).includes(book.id);
     
     // Check status match
-    const entry = mockLibraryEntries.find(e => e.bookId === book.id);
+    const entry = entries.find(e => e.bookId === book.id || e.id === book.id);
     const matchesStatus = selectedStatus === 'all' || (entry && entry.status === selectedStatus);
 
     return matchesSearch && inShelf && matchesStatus;
@@ -52,7 +66,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
 
       {/* Shelves Pill Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/10">
-        {mockShelves.map(shelf => (
+        {shelves.map(shelf => (
           <button
             key={shelf.id}
             onClick={() => setSelectedShelf(shelf.id)}
@@ -66,7 +80,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
             <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
               selectedShelf === shelf.id ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-400'
             }`}>
-              {shelf.bookIds.length}
+              {shelf.isDefault ? books.length : (shelf.bookIds || []).length}
             </span>
           </button>
         ))}
@@ -129,18 +143,18 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
       {viewMode === 'grid' && (
         <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filteredBooks.map(book => {
-            const entry = mockLibraryEntries.find(e => e.bookId === book.id);
+            const entry = entries.find(e => e.bookId === book.id || e.id === book.id);
             return (
               <article 
                 key={book.id} 
                 className="book-card group cursor-pointer"
                 onClick={() => onSelectBook(book)}
               >
-                <div className="relative overflow-hidden rounded-lg">
+                <div className="relative overflow-hidden rounded-lg bg-slate-800 aspect-[2/3]">
                   <img 
                     src={book.coverUrl} 
                     alt={book.title}
-                    className="cover cover-large group-hover:scale-105 transition-transform duration-300" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                     onError={e => { (e.target as HTMLElement).style.background = book.coverColor || '#334155'; }}
                   />
                   {entry?.status === 'reading' && (
@@ -154,7 +168,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
                   <h3 className="text-xs font-bold text-white line-clamp-1 group-hover:text-amber-400 transition-colors">{book.title}</h3>
                   <p className="text-[11px] text-slate-400 line-clamp-1">{book.author}</p>
                   <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1">
-                    <span>{book.format}</span>
+                    <span className="capitalize">{book.format}</span>
                     <span>{book.pageCount} pgs</span>
                   </div>
                 </div>
@@ -170,7 +184,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
           <div className="bg-slate-900/90 rounded-2xl p-6 border border-white/10 space-y-6 shadow-2xl">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <h2 className="text-lg font-bold text-amber-400 flex items-center gap-2">
-                <Layers size={18} /> {currentShelf.name} Shelf
+                <Layers size={18} /> {currentShelf?.name || 'All Books'} Shelf
               </h2>
               <span className="text-xs text-slate-400">{filteredBooks.length} titles on display</span>
             </div>
@@ -182,7 +196,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
                   key={book.id}
                   onClick={() => onSelectBook(book)}
                   className="group cursor-pointer shrink-0 transition-transform hover:-translate-y-4 duration-200 relative"
-                  style={{ width: '48px', height: `${Math.min(220, Math.max(160, book.pageCount / 2))}px` }}
+                  style={{ width: '48px', height: `${Math.min(220, Math.max(160, (book.pageCount || 300) / 2))}px` }}
                 >
                   {/* Vertical Spine */}
                   <div 
@@ -193,7 +207,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
                       {book.title}
                     </div>
                     <div className="text-[8px] font-mono text-white/70 text-center">
-                      {book.publishedYear}
+                      {book.publishedYear || 2026}
                     </div>
                   </div>
                 </div>
@@ -223,7 +237,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
               className="grid grid-cols-12 items-center text-xs p-3 rounded-lg hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-white/5"
             >
               <div className="col-span-5 flex items-center gap-3">
-                <img src={book.coverUrl} alt={book.title} className="w-8 h-11 object-cover rounded shadow" />
+                <img src={book.coverUrl} alt={book.title} className="w-8 h-11 object-cover rounded shadow bg-slate-800" />
                 <div>
                   <h4 className="font-semibold text-white group-hover:text-amber-400">{book.title}</h4>
                   <p className="text-slate-400 text-[11px]">{book.author}</p>
@@ -232,7 +246,7 @@ export function VirtualLibraryView({ onSelectBook, onAddBook, initialStatus = 'a
               <span className="col-span-2 capitalize text-slate-300 font-mono">{book.format}</span>
               <span className="col-span-2 text-slate-300 font-mono">{book.pageCount} pgs</span>
               <div className="col-span-3 text-right flex flex-wrap gap-1 justify-end">
-                {book.genres.slice(0, 2).map(g => (
+                {(book.genres || []).slice(0, 2).map(g => (
                   <span key={g} className="text-[10px] bg-slate-900 text-slate-400 px-2 py-0.5 rounded">
                     {g}
                   </span>

@@ -1,0 +1,138 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Book {
+  id            String   @id @default(cuid())
+  title         String
+  subtitle      String?
+  author        String
+  authorId      String?
+  coverUrl      String?
+  coverColor    String?
+  description   String?
+  isbn          String?
+  isbn13        String?
+  genres        String[] @default([])
+  format        String   @default("paperback")
+  pageCount     Int      @default(0)
+  publishedYear Int?
+  publisher     String?
+  language      String?  @default("en")
+  openLibraryId String?
+  googleBooksId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  entries LibraryEntry[]
+}
+
+model LibraryEntry {
+  id              String    @id @default(cuid())
+  bookId          String
+  status          String    @default("reading") // tbr | reading | read | dnf
+  owned           Boolean   @default(true)
+  rating          Float?
+  difficulty      Int?
+  emotionalImpact Int?
+  wouldRecommend  Boolean?
+  rereadValue     Int?
+  dateAdded       DateTime  @default(now())
+  dateStarted     DateTime?
+  dateFinished    DateTime?
+  currentPage     Int       @default(0)
+  progressPercent Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  book     Book             @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  sessions ReadingSession[]
+  notes    Note[]
+  shelves  ShelfOnEntry[]
+}
+
+model ReadingSession {
+  id             String    @id @default(cuid())
+  libraryEntryId String
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  pageStart      Int       @default(0)
+  pageEnd        Int?
+  minutes        Int?      @default(30)
+  mood           String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id             String   @id @default(cuid())
+  libraryEntryId String
+  type           String   @default("quote") // note | quote | reflection | highlight
+  text           String
+  page           Int?
+  chapter        Int?
+  tags           String[] @default([])
+  isFavorite     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+}
+
+model Shelf {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+  color       String?
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entries ShelfOnEntry[]
+}
+
+model ShelfOnEntry {
+  shelfId        String
+  libraryEntryId String
+
+  shelf        Shelf        @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+
+  @@id([shelfId, libraryEntryId])
+}
+
+model ReadingGoal {
+  id            String   @id @default(cuid())
+  year          Int      @unique
+  targetBooks   Int      @default(50)
+  targetPages   Int      @default(15000)
+  targetMinutes Int?     @default(10000)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model UserProfile {
+  id               String   @id @default("user-default")
+  name             String   @default("Kumar Nishant")
+  email            String   @default("kumar.nishant@devreader.com")
+  bio              String?  @default("Software engineer by day, voracious reader by night.")
+  location         String?  @default("Bangalore, India")
+  website          String?  @default("https://github.com/kumarnishant")
+  level            Int      @default(15)
+  xpCurrent        Int      @default(3450)
+  xpNext           Int      @default(5000)
+  currentStreak    Int      @default(42)
+  longestStreak    Int      @default(68)
+  targetBooks      Int      @default(60)
+  dailyMinutesGoal Int      @default(45)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

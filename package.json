@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+    "@prisma/client": "6.4.0",
     "@vercel/analytics": "1.6.1",
     "@zxing/library": "^0.23.0",
     "class-variance-authority": "^0.7.1",
@@ -30,10 +31,14 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
+    "prisma": "^6.4.0",
     "tailwindcss": "^4.3.3",
     "typescript": "5.7.3"
   },
   "packageManager": "pnpm@10.5.0",
+  "prisma": {
+    "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
   "overrides": {
     "hono": "4.12.25"
   }

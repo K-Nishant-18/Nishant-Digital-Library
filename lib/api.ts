@@ -3,108 +3,113 @@ import type { OpenLibraryBook, OpenLibrarySearchResult, GoogleBooksVolume, Googl
 const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
 const GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1';
 
-export async function searchOpenLibrary(query: string, limit = 20): Promise<OpenLibraryBook[]> {
-  const params = new URLSearchParams({
-    q: query,
-    limit: limit.toString(),
-    fields: 'key,title,subtitle,authors,cover,description,isbn_10,isbn_13,subjects,publish_date,publish_year,publishers,number_of_pages_median,language',
-  });
+export async function searchGoogleBooks(query: string, limit = 10): Promise<GoogleBooksVolume[]> {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      maxResults: limit.toString(),
+      printType: 'books',
+    });
 
-  const response = await fetch(`${OPEN_LIBRARY_BASE}/search.json?${params}`);
-  if (!response.ok) throw new Error('Open Library search failed');
-  
-  const data: OpenLibrarySearchResult = await response.json();
-  return data.docs;
+    const response = await fetch(`${GOOGLE_BOOKS_BASE}/volumes?${params}`);
+    if (!response.ok) return [];
+
+    const data: GoogleBooksSearchResult = await response.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
 }
 
-export async function getOpenLibraryBook(olid: string): Promise<OpenLibraryBook | null> {
-  const response = await fetch(`${OPEN_LIBRARY_BASE}/works/${olid}.json`);
-  if (!response.ok) return null;
-  return response.json();
+export async function searchOpenLibrary(query: string, limit = 10): Promise<any[]> {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      limit: limit.toString(),
+    });
+
+    const response = await fetch(`${OPEN_LIBRARY_BASE}/search.json?${params}`);
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    return data.docs || [];
+  } catch {
+    return [];
+  }
 }
 
-export async function searchGoogleBooks(query: string, limit = 20): Promise<GoogleBooksVolume[]> {
-  const params = new URLSearchParams({
-    q: query,
-    maxResults: limit.toString(),
-    printType: 'books',
-  });
-
-  const response = await fetch(`${GOOGLE_BOOKS_BASE}/volumes?${params}`);
-  if (!response.ok) throw new Error('Google Books search failed');
-  
-  const data: GoogleBooksSearchResult = await response.json();
-  return data.items || [];
-}
-
-export async function getGoogleBook(volumeId: string): Promise<GoogleBooksVolume | null> {
-  const response = await fetch(`${GOOGLE_BOOKS_BASE}/volumes/${volumeId}`);
-  if (!response.ok) return null;
-  return response.json();
-}
-
-export function openLibraryToBook(olBook: OpenLibraryBook): Partial<Book> {
-  const coverId = olBook.cover?.large || olBook.covers?.[0];
-  const coverUrl = coverId 
-    ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
-    : undefined;
-
-  const author = olBook.authors?.[0]?.name || 'Unknown Author';
-  const genres = olBook.subjects?.slice(0, 5) || [];
-  const pageCount = olBook.number_of_pages_median || 0;
-  const publishedYear = olBook.publish_year?.[0];
-  const publisher = olBook.publishers?.[0];
-  const isbn = olBook.isbn_13?.[0] || olBook.isbn_10?.[0];
-  const description = typeof olBook.description === 'string' 
-    ? olBook.description 
-    : olBook.description?.value;
-
-  return {
-    title: olBook.title,
-    subtitle: olBook.subtitle,
-    author,
-    coverUrl,
-    description,
-    isbn,
-    isbn13: olBook.isbn_13?.[0],
-    genres,
-    format: 'paperback' as const,
-    pageCount,
-    publishedYear,
-    publisher,
-    openLibraryId: olBook.key.replace('/works/', ''),
-  };
-}
-
-export function googleBooksToBook(gbBook: GoogleBooksVolume): Partial<Book> {
+export function googleBooksToBook(gbBook: GoogleBooksVolume, idx: number): Book {
   const info = gbBook.volumeInfo;
-  const coverUrl = info.imageLinks?.large || info.imageLinks?.medium || info.imageLinks?.thumbnail;
-  const author = info.authors?.[0] || 'Unknown Author';
-  const genres = info.categories || [];
+  
+  // Format cover URL with https and higher quality zoom
+  let rawCover = info.imageLinks?.large || info.imageLinks?.medium || info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
+  if (rawCover) {
+    rawCover = rawCover.replace('http://', 'https://');
+    if (rawCover.includes('&edge=curl')) {
+      rawCover = rawCover.replace('&edge=curl', '');
+    }
+  }
+
+  const author = info.authors?.length ? info.authors.join(', ') : 'Unknown Author';
+  const genres = info.categories?.length ? info.categories : ['General'];
   const isbn13 = info.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier;
   const isbn10 = info.industryIdentifiers?.find(id => id.type === 'ISBN_10')?.identifier;
-  const publishedYear = info.publishedDate ? new Date(info.publishedDate).getFullYear() : undefined;
+  const publishedYear = info.publishedDate ? parseInt(info.publishedDate.split('-')[0]) : undefined;
 
   return {
-    title: info.title,
+    id: `gb-${gbBook.id || idx}`,
+    title: info.title || 'Untitled',
     subtitle: info.subtitle,
     author,
-    coverUrl,
-    description: info.description,
+    coverUrl: rawCover || `https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80`,
+    coverColor: getCoverColor(rawCover),
+    description: info.description || 'No description available for this volume.',
     isbn: isbn10,
     isbn13,
     genres,
-    format: 'paperback' as const,
-    pageCount: info.pageCount || 0,
-    publishedYear,
+    format: 'paperback',
+    pageCount: info.pageCount || 320,
+    publishedYear: publishedYear || 2024,
     publisher: info.publisher,
-    language: info.language,
+    language: info.language || 'en',
     googleBooksId: gbBook.id,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+export function openLibraryDocToBook(doc: any, idx: number): Book {
+  const coverUrl = doc.cover_i
+    ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+    : undefined;
+
+  const author = Array.isArray(doc.author_name) ? doc.author_name.join(', ') : 'Unknown Author';
+  const genres = Array.isArray(doc.subject) ? doc.subject.slice(0, 4) : ['General'];
+  const publishedYear = doc.first_publish_year || (Array.isArray(doc.publish_year) ? doc.publish_year[0] : undefined);
+  const isbn = Array.isArray(doc.isbn) ? doc.isbn[0] : undefined;
+
+  return {
+    id: `ol-${doc.key?.replace('/works/', '') || idx}`,
+    title: doc.title || 'Untitled',
+    subtitle: doc.subtitle,
+    author,
+    coverUrl: coverUrl || `https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80`,
+    coverColor: getCoverColor(coverUrl),
+    description: doc.first_sentence?.[0] || 'No description available.',
+    isbn,
+    genres,
+    format: 'paperback',
+    pageCount: doc.number_of_pages_median || 300,
+    publishedYear: publishedYear || 2024,
+    publisher: Array.isArray(doc.publisher) ? doc.publisher[0] : undefined,
+    language: Array.isArray(doc.language) ? doc.language[0] : 'en',
+    openLibraryId: doc.key?.replace('/works/', ''),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 }
 
 export function getCoverColor(coverUrl?: string): string {
-  // Default colors based on genre/topic - in production, extract from cover image
   const colors = [
     '#b7791f', '#64748b', '#c2410c', '#334155', 
     '#15803d', '#7c3aed', '#be185d', '#0891b2',
@@ -114,26 +119,15 @@ export function getCoverColor(coverUrl?: string): string {
 }
 
 export async function searchExternalBooks(query: string): Promise<Book[]> {
-  try {
-    const docs = await searchOpenLibrary(query, 5);
-    return docs.map((doc, idx) => {
-      const partial = openLibraryToBook(doc);
-      return {
-        id: `ext-${idx}`,
-        title: partial.title || 'Untitled',
-        author: partial.author || 'Unknown Author',
-        coverUrl: partial.coverUrl || '/placeholder.jpg',
-        coverColor: getCoverColor(),
-        format: 'paperback',
-        genres: partial.genres?.length ? partial.genres : ['General'],
-        pageCount: partial.pageCount || 300,
-        publishedYear: partial.publishedYear || 2024,
-        description: partial.description || 'No description available.',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as Book;
-    });
-  } catch {
-    return [];
+  if (!query.trim()) return [];
+
+  // Try Google Books API first for high resolution covers & complete metadata
+  const gbResults = await searchGoogleBooks(query, 8);
+  if (gbResults.length > 0) {
+    return gbResults.map((item, idx) => googleBooksToBook(item, idx));
   }
+
+  // Fallback to Open Library search
+  const olDocs = await searchOpenLibrary(query, 8);
+  return olDocs.map((doc, idx) => openLibraryDocToBook(doc, idx));
 }
