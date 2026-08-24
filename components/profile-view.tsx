@@ -100,9 +100,10 @@ export function ProfileView({ userProfile, stats: dbStats }: ProfileViewProps) {
 
               <div className="flex items-center gap-4 pt-1 text-[11px] text-slate-400 flex-wrap">
                 <span className="flex items-center gap-1"><Calendar size={13} className="text-amber-500" /> Joined January 2024</span>
-                <span className="flex items-center gap-1"><Flame size={13} className="text-amber-500" /> {stats.currentStreak} Day Streak</span>
-                <span className="flex items-center gap-1"><BookOpen size={13} className="text-amber-500" /> {stats.booksThisYear} Books Read</span>
-                <span className="flex items-center gap-1"><Bookmark size={13} className="text-amber-500" /> {stats.pagesThisYear.toLocaleString()} Pages</span>
+              <span className="flex items-center gap-1"><Flame size={13} className="text-amber-500" /> {stats.currentStreak} Day Streak</span>
+              <span className="flex items-center gap-1"><BookOpen size={13} className="text-amber-500" /> {stats.booksThisYear} Books Read</span>
+              <span className="flex items-center gap-1"><Bookmark size={13} className="text-amber-500" /> {stats.pagesThisYear.toLocaleString()} Pages</span>
+              <span className="flex items-center gap-1"><Star size={13} className="text-amber-500" /> {stats.averageRating.toFixed(1)} Avg Rating</span>
               </div>
             </div>
           </div>

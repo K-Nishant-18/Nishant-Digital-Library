@@ -12,6 +12,7 @@ import { NotesJournalView } from '@/components/notes-journal';
 import { VirtualLibraryView } from '@/components/virtual-library';
 import { ReadingLogsView } from '@/components/reading-logs';
 import { ProfileView } from '@/components/profile-view';
+import { BookEditModal } from '@/components/book-edit-modal';
 import type { Book, LibraryEntry, ReadingSession, Note, Shelf, ReadingGoal, ReadingStats } from '@/lib/types';
 import { searchExternalBooks } from '@/lib/api';
 import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';
@@ -57,7 +58,8 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Modals state
-  const [modal, setModal] = useState<'add' | 'session' | 'note' | null>(null);
+  const [modal, setModal] = useState<'add' | 'session' | 'note' | 'edit' | null>(null);
+  const [editingEntry, setEditingEntry] = useState<LibraryEntry | null>(null);
 
   // Add book modal state
   const [apiSearch, setApiSearch] = useState('');
@@ -332,12 +334,17 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               onAddBook={() => setModal('add')}
               onLogSession={() => setModal('session')}
               onAddNote={() => setModal('note')}
+              onEditBook={(entry) => {
+                setEditingEntry(entry);
+                setModal('edit');
+              }}
               stats={stats}
               books={books}
               entries={entries}
               sessions={sessions}
               notes={notes}
               goal={goal}
+              setSelectedBook={setSelectedBook}
             />
           )}
 
@@ -345,16 +352,29 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
             <CurrentlyReadingView
               onLogSession={() => setModal('session')}
               onAddNote={() => setModal('note')}
-              entry={activeCurrentlyReadingEntry}
+              onEditBook={(entry) => {
+                setEditingEntry(entry);
+                setModal('edit');
+              }}
+              entry={selectedBook ? entries.find(e => e.bookId === selectedBook.id) : activeCurrentlyReadingEntry}
               sessions={sessions}
               notes={notes}
+              chapters={[]}
             />
           )}
 
           {active === 'Virtual Library' && (
             <VirtualLibraryView
               initialStatus="all"
-              onSelectBook={(book) => { setSelectedBook(book); setActive('Currently Reading'); }}
+              onSelectBook={(book) => {
+                const entry = entries.find(e => e.bookId === book.id);
+                setSelectedBook(book);
+                setActive('Currently Reading');
+              }}
+              onEditBook={(entry) => {
+                setEditingEntry(entry);
+                setModal('edit');
+              }}
               onAddBook={() => setModal('add')}
               books={books}
               entries={entries}
@@ -365,7 +385,15 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           {active === 'TBR Queue' && (
             <VirtualLibraryView
               initialStatus="tbr"
-              onSelectBook={(book) => { setSelectedBook(book); setActive('Currently Reading'); }}
+              onSelectBook={(book) => {
+                const entry = entries.find(e => e.bookId === book.id);
+                setSelectedBook(book);
+                setActive('Currently Reading');
+              }}
+              onEditBook={(entry) => {
+                setEditingEntry(entry);
+                setModal('edit');
+              }}
               onAddBook={() => setModal('add')}
               books={books}
               entries={entries}
@@ -555,6 +583,23 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
         </div>
       )}
 
+      {/* Edit Book Modal */}
+      {modal === 'edit' && editingEntry && (
+        <BookEditModal
+          entry={editingEntry}
+          onClose={() => {
+            setModal(null);
+            setEditingEntry(null);
+          }}
+          onSave={() => {
+            setModal(null);
+            setEditingEntry(null);
+            // Refresh data by reloading the page
+            window.location.reload();
+          }}
+        />
+      )}
+
       {/* Add Note Modal */}
       {modal === 'note' && (
         <div className="search-overlay" role="dialog">
@@ -623,6 +668,15 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           </div>
         </div>
       )}
+
+      {/* Edit Book Modal */}
+      {modal === 'edit' && editingEntry && (
+        <BookEditModal
+          entry={editingEntry}
+          onClose={() => { setModal(null); setEditingEntry(null); }}
+          onSave={() => { setModal(null); setEditingEntry(null); }}
+        />
+      )}
     </div>
   );
 }
@@ -633,23 +687,27 @@ function DashboardView({
   onAddBook,
   onLogSession,
   onAddNote,
+  onEditBook,
   stats,
   books,
   entries,
   sessions,
   notes,
   goal,
+  setSelectedBook,
 }: {
   setActive: (val: string) => void;
   onAddBook: () => void;
   onLogSession: () => void;
   onAddNote: () => void;
+  onEditBook?: (entry: LibraryEntry) => void;
   stats: ReadingStats;
   books: Book[];
   entries: LibraryEntry[];
   sessions: ReadingSession[];
   notes: Note[];
   goal: ReadingGoal;
+  setSelectedBook: (book: Book) => void;
 }) {
   const currentReadingEntry = entries.find(e => e.status === 'reading') || entries[0];
   const currentReadingBook = currentReadingEntry?.book || books[0];
@@ -745,7 +803,10 @@ function DashboardView({
               {(tbrEntries.length > 0 ? tbrEntries : entries).slice(0, 6).map((entry, idx) => {
                 const b = entry.book || books[idx] || books[0];
                 return (
-                  <div key={entry.id || idx} className="group cursor-pointer space-y-1.5" onClick={() => setActive('Currently Reading')}>
+                  <div key={entry.id || idx} className="group cursor-pointer space-y-1.5" onClick={() => {
+                    setSelectedBook(b);
+                    setActive('Currently Reading');
+                  }}>
                     <div className="aspect-[2/3] rounded overflow-hidden bg-slate-800 shadow-md group-hover:scale-105 transition-transform duration-200">
                       <img src={b.coverUrl} alt={b.title} className="w-full h-full object-cover" />
                     </div>
@@ -805,7 +866,11 @@ function DashboardView({
           <div className="bg-[#141618] border border-[#232629] rounded-lg p-6 space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-[12px] font-bold tracking-wider text-slate-400 uppercase">Currently Reading</span>
-              <button className="text-slate-500 hover:text-slate-300">
+              <button
+                className="text-slate-500 hover:text-amber-400 transition-colors p-1 rounded hover:bg-white/5"
+                onClick={() => currentReadingEntry && onEditBook?.(currentReadingEntry)}
+                title="Edit Book Details"
+              >
                 <Sliders size={16} />
               </button>
             </div>

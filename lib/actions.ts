@@ -269,7 +269,7 @@ export async function getLibraryData() {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// BOOKS: Add / Delete
+// BOOKS: Add / Delete / Update
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function addBookToLibraryAction(book: Partial<Book>, status: 'tbr' | 'reading' | 'read' = 'tbr') {
@@ -338,18 +338,69 @@ export async function deleteBookAction(entryId: string) {
   }
 }
 
+// NEW: Update book details
+export async function updateBookAction(bookId: string, bookData: Partial<Book>) {
+  try {
+    const updatedBook = await prisma.book.update({
+      where: { id: bookId },
+      data: {
+        title: bookData.title,
+        subtitle: bookData.subtitle,
+        author: bookData.author,
+        coverUrl: bookData.coverUrl,
+        coverColor: bookData.coverColor,
+        description: bookData.description,
+        isbn: bookData.isbn,
+        isbn13: bookData.isbn13,
+        genres: bookData.genres,
+        format: bookData.format,
+        pageCount: bookData.pageCount,
+        publishedYear: bookData.publishedYear,
+        publisher: bookData.publisher,
+        language: bookData.language,
+        openLibraryId: bookData.openLibraryId,
+        googleBooksId: bookData.googleBooksId,
+      },
+    });
+
+    // Update the associated entry's progress if pageCount changed
+    if (bookData.pageCount) {
+      const entries = await prisma.libraryEntry.findMany({ where: { bookId } });
+      for (const entry of entries) {
+        const progressPercent = Math.min(100, Math.round((entry.currentPage / bookData.pageCount) * 100));
+        await prisma.libraryEntry.update({
+          where: { id: entry.id },
+          data: { progressPercent },
+        });
+      }
+    }
+
+    revalidatePath('/');
+    return { success: true, book: updatedBook };
+  } catch (error: any) {
+    console.error('[updateBookAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // LIBRARY ENTRY: Update status, rating, owned
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function updateLibraryEntryAction({
-  entryId, status, rating, owned, currentPage,
+  entryId, status, rating, owned, currentPage, difficulty, emotionalImpact, wouldRecommend, rereadValue, dateStarted, dateFinished,
 }: {
   entryId: string;
   status?: 'tbr' | 'reading' | 'read' | 'dnf';
   rating?: number;
   owned?: boolean;
   currentPage?: number;
+  difficulty?: number;
+  emotionalImpact?: number;
+  wouldRecommend?: boolean;
+  rereadValue?: number;
+  dateStarted?: Date;
+  dateFinished?: Date;
 }) {
   try {
     const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId }, include: { book: true } });
@@ -366,8 +417,14 @@ export async function updateLibraryEntryAction({
         ...(rating !== undefined && { rating }),
         ...(owned !== undefined && { owned }),
         ...(currentPage !== undefined && { currentPage, progressPercent }),
-        ...(status === 'reading' && !entry.dateStarted && { dateStarted: new Date() }),
-        ...(status === 'read' && { dateFinished: new Date(), currentPage: totalPages, progressPercent: 100 }),
+        ...(difficulty !== undefined && { difficulty }),
+        ...(emotionalImpact !== undefined && { emotionalImpact }),
+        ...(wouldRecommend !== undefined && { wouldRecommend }),
+        ...(rereadValue !== undefined && { rereadValue }),
+        ...(dateStarted !== undefined && { dateStarted }),
+        ...(dateFinished !== undefined && { dateFinished }),
+        ...(status === 'reading' && !entry.dateStarted && !dateStarted && { dateStarted: new Date() }),
+        ...(status === 'read' && !dateFinished && { dateFinished: new Date(), currentPage: totalPages, progressPercent: 100 }),
       },
     });
 
@@ -375,6 +432,67 @@ export async function updateLibraryEntryAction({
     return { success: true };
   } catch (error: any) {
     console.error('[updateLibraryEntryAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// NEW: Update library entry with all fields
+export async function updateLibraryEntryFullAction({
+  entryId,
+  status,
+  rating,
+  owned,
+  currentPage,
+  difficulty,
+  emotionalImpact,
+  wouldRecommend,
+  rereadValue,
+  dateStarted,
+  dateFinished,
+}: {
+  entryId: string;
+  status?: 'tbr' | 'reading' | 'read' | 'dnf';
+  rating?: number;
+  owned?: boolean;
+  currentPage?: number;
+  difficulty?: number;
+  emotionalImpact?: number;
+  wouldRecommend?: boolean;
+  rereadValue?: number;
+  dateStarted?: Date;
+  dateFinished?: Date;
+}) {
+  try {
+    const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId }, include: { book: true } });
+    if (!entry) return { success: false, error: 'Entry not found' };
+
+    const totalPages = entry.book.pageCount || 300;
+    const newPage = currentPage ?? entry.currentPage;
+    const progressPercent = Math.min(100, Math.round((newPage / totalPages) * 100));
+
+    await prisma.libraryEntry.update({
+      where: { id: entryId },
+      data: {
+        ...(status && { status }),
+        ...(rating !== undefined && { rating }),
+        ...(owned !== undefined && { owned }),
+        ...(currentPage !== undefined && { currentPage }),
+        ...(difficulty !== undefined && { difficulty }),
+        ...(emotionalImpact !== undefined && { emotionalImpact }),
+        ...(wouldRecommend !== undefined && { wouldRecommend }),
+        ...(rereadValue !== undefined && { rereadValue }),
+        ...(dateStarted && { dateStarted }),
+        ...(dateFinished && { dateFinished }),
+        ...(currentPage !== undefined || status === 'read' ? { progressPercent } : {}),
+        ...(status === 'reading' && !entry.dateStarted && !dateStarted && { dateStarted: new Date() }),
+        ...(status === 'read' && { dateFinished: new Date(), currentPage: totalPages, progressPercent: 100 }),
+      },
+    });
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[updateLibraryEntryFullAction] Error:', error);
     return { success: false, error: error.message };
   }
 }
@@ -485,6 +603,41 @@ export async function toggleNoteFavoriteAction(noteId: string, isFavorite: boole
   }
 }
 
+// NEW: Update note
+export async function updateNoteAction({
+  noteId,
+  text,
+  page,
+  chapter,
+  tags,
+  type,
+}: {
+  noteId: string;
+  text?: string;
+  page?: number;
+  chapter?: number;
+  tags?: string[];
+  type?: 'note' | 'quote' | 'reflection' | 'highlight';
+}) {
+  try {
+    await prisma.note.update({
+      where: { id: noteId },
+      data: {
+        ...(text !== undefined && { text }),
+        ...(page !== undefined && { page }),
+        ...(chapter !== undefined && { chapter }),
+        ...(tags !== undefined && { tags }),
+        ...(type !== undefined && { type }),
+      },
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[updateNoteAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // SHELVES: Add shelf, add book to shelf
 // ──────────────────────────────────────────────────────────────────────────────
@@ -511,6 +664,64 @@ export async function addBookToShelfAction(shelfId: string, libraryEntryId: stri
     return { success: true };
   } catch (error: any) {
     console.error('[addBookToShelfAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// NEW: Remove book from shelf
+export async function removeBookFromShelfAction(shelfId: string, libraryEntryId: string) {
+  try {
+    await prisma.shelfOnEntry.delete({
+      where: { shelfId_libraryEntryId: { shelfId, libraryEntryId } },
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[removeBookFromShelfAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// NEW: Delete shelf
+export async function deleteShelfAction(shelfId: string) {
+  try {
+    await prisma.shelf.delete({ where: { id: shelfId } });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[deleteShelfAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// NEW: Update shelf
+export async function updateShelfAction({
+  shelfId,
+  name,
+  description,
+  color,
+  icon,
+}: {
+  shelfId: string;
+  name?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+}) {
+  try {
+    await prisma.shelf.update({
+      where: { id: shelfId },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(color !== undefined && { color }),
+        ...(icon !== undefined && { icon }),
+      },
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[updateShelfAction] Error:', error);
     return { success: false, error: error.message };
   }
 }

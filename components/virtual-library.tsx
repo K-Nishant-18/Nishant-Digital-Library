@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { 
   Grid2X2, List, LayoutGrid, Filter, Search, Plus, Star, Heart, Bookmark, 
-  Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers
+  Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers, Sliders, Edit3
 } from 'lucide-react';
 import { mockBooks, mockShelves, mockLibraryEntries } from '@/lib/data';
 import type { Book, Shelf, LibraryEntry } from '@/lib/types';
@@ -11,6 +11,7 @@ import type { Book, Shelf, LibraryEntry } from '@/lib/types';
 interface VirtualLibraryProps {
   onSelectBook: (book: Book) => void;
   onAddBook: () => void;
+  onEditBook?: (entry: LibraryEntry) => void;
   initialStatus?: string;
   books?: Book[];
   entries?: LibraryEntry[];
@@ -20,6 +21,7 @@ interface VirtualLibraryProps {
 export function VirtualLibraryView({ 
   onSelectBook, 
   onAddBook, 
+  onEditBook,
   initialStatus = 'all',
   books: dbBooks,
   entries: dbEntries,
@@ -161,6 +163,18 @@ export function VirtualLibraryView({
                     <span className="absolute top-2 left-2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow">
                       {entry.progressPercent}%
                     </span>
+                  )}
+                  {onEditBook && entry && (
+                    <button
+                      className="absolute top-2 right-2 p-1.5 rounded-md bg-black/70 hover:bg-amber-500 hover:text-black text-slate-200 transition-all opacity-0 group-hover:opacity-100 shadow"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditBook(entry);
+                      }}
+                      title="Edit Book Details"
+                    >
+                      <Edit3 size={13} />
+                    </button>
                   )}
                 </div>
 

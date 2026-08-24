@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { 
   BookOpen, Calendar, Clock, Bookmark, Plus, Star, Heart, Edit3, 
-  ChevronRight, Tag, CheckCircle2, MessageSquareQuote, FileText
+  ChevronRight, Tag, CheckCircle2, MessageSquareQuote, FileText, Sliders
 } from 'lucide-react';
 import type { LibraryEntry, ReadingSession, Note, Chapter } from '@/lib/types';
 import { mockLibraryEntries, mockReadingSessions, mockChapters, mockNotes, mockAuthors } from '@/lib/data';
@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 interface CurrentlyReadingProps {
   onLogSession: () => void;
   onAddNote: () => void;
+  onEditBook?: (entry: LibraryEntry) => void;
   entry?: LibraryEntry;
   sessions?: ReadingSession[];
   notes?: Note[];
@@ -21,6 +22,7 @@ interface CurrentlyReadingProps {
 export function CurrentlyReadingView({ 
   onLogSession, 
   onAddNote,
+  onEditBook,
   entry,
   sessions: dbSessions,
   notes: dbNotes,
@@ -97,6 +99,11 @@ export function CurrentlyReadingView({
               <button className="outline-button" onClick={onAddNote}>
                 <Edit3 size={16} /> Add Note / Quote
               </button>
+              {onEditBook && activeEntry && (
+                <button className="outline-button" onClick={() => onEditBook(activeEntry)}>
+                  <Sliders size={16} /> Edit Book
+                </button>
+              )}
             </div>
           </div>
 
