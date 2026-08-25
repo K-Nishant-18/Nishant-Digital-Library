@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 import { X, BookOpen, User, Image, FileText, Tag, Book as BookIcon, Calendar, Building, Globe, Type, Hash, Bookmark, Star, Heart, Repeat, Smile, Meh, Frown, Check, ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
 import { updateBookAction, updateLibraryEntryAction } from '@/lib/actions';
 import type { Book, LibraryEntry } from '@/lib/types';
@@ -172,11 +173,13 @@ export function BookEditModal({
             <div className="space-y-4">
               {/* Cover Image */}
               <div className="flex gap-4">
-<div className="w-32 h-44 bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
+<div className="relative w-32 h-44 bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
                   {bookData.coverUrl ? (
-                    <img
-                      src={bookData.coverUrl}
-                      alt={bookData.title}
+                    <NextImage
+                      src={bookData.coverUrl!}
+                      alt={bookData.title || 'Book cover'}
+                      fill
+                      sizes="128px"
                       className="w-full h-full object-cover"
                     />
                   ) : (

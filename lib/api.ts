@@ -119,15 +119,21 @@ export function getCoverColor(coverUrl?: string): string {
 }
 
 export async function searchExternalBooks(query: string): Promise<Book[]> {
-  if (!query.trim()) return [];
+  const q = query.trim();
+  if (!q) return [];
+
+  // Scanned/typed ISBNs query the isbn index directly for exact matches
+  const normalized = q.replace(/[-\s]/g, '');
+  const isIsbn = /^(\d{9}[\dxX]|\d{10}|\d{13})$/.test(normalized);
+  const gbQuery = isIsbn ? `isbn:${normalized}` : q;
 
   // Try Google Books API first for high resolution covers & complete metadata
-  const gbResults = await searchGoogleBooks(query, 8);
+  const gbResults = await searchGoogleBooks(gbQuery, 8);
   if (gbResults.length > 0) {
     return gbResults.map((item, idx) => googleBooksToBook(item, idx));
   }
 
   // Fallback to Open Library search
-  const olDocs = await searchOpenLibrary(query, 8);
+  const olDocs = await searchOpenLibrary(isIsbn ? `isbn:${normalized}` : q, 8);
   return olDocs.map((doc, idx) => openLibraryDocToBook(doc, idx));
 }

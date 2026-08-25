@@ -5,6 +5,7 @@ import {
   Grid2X2, List, LayoutGrid, Filter, Search, Plus, Star, Heart, Bookmark,
   Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers, Sliders, Edit3
 } from 'lucide-react';
+import { CoverImage } from '@/components/cover-image';
 import type { Book, Shelf, LibraryEntry } from '@/lib/types';
 
 interface VirtualLibraryProps {
@@ -153,9 +154,11 @@ export function VirtualLibraryView({
                   onClick={() => onSelectBook(book)}
                 >
                   <div className="relative overflow-hidden rounded-lg bg-slate-800 aspect-[2/3] shadow-md group-hover:shadow-amber-500/20 transition-shadow">
-                    <img
+                    <CoverImage
                       src={book.coverUrl}
                       alt={book.title}
+                      fill
+                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={e => { (e.target as HTMLElement).style.background = book.coverColor || '#334155'; }}
                     />
@@ -252,7 +255,7 @@ export function VirtualLibraryView({
               className="grid grid-cols-12 items-center text-xs p-3 rounded-lg hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-white/5"
             >
               <div className="col-span-5 flex items-center gap-3">
-                <img src={book.coverUrl} alt={book.title} className="w-8 h-11 object-cover rounded shadow bg-slate-800" />
+                    <CoverImage src={book.coverUrl} alt={book.title} width={32} height={44} className="w-8 h-11 object-cover rounded shadow bg-slate-800" />
                 <div>
                   <h4 className="font-semibold text-white group-hover:text-amber-400">{book.title}</h4>
                   <p className="text-slate-400 text-[11px]">{book.author}</p>

@@ -5,7 +5,7 @@ import {
   Bookmark, Search, Plus, Tag, Heart, MessageSquare, Quote, Highlighter as Highlight,
   ChevronRight, Filter, BookOpen, Share2, Copy, Check
 } from 'lucide-react';
-import type { Note, Book, LibraryEntry } from '@/lib/types';
+import type { Note, LibraryEntry } from '@/lib/types';
 import { toast } from '@/components/toast';
 import { format } from 'date-fns';
 
@@ -15,6 +15,20 @@ interface NotesJournalProps {
   notes?: Note[];
   entries?: LibraryEntry[];
 }
+
+function downloadText(filename: string, content: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
 export function NotesJournalView({
   onAddNote,
@@ -49,6 +63,73 @@ export function NotesJournalView({
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const noteBookTitle = (note: Note) =>
+    entries.find(e => e.id === note.libraryEntryId)?.book?.title || 'Unknown book';
+
+  const exportCsv = () => {
+    if (notes.length === 0) {
+      toast('No notes to export yet', 'info');
+      return;
+    }
+    const rows = [['Date', 'Type', 'Book', 'Page', 'Tags', 'Text'].join(',')];
+    for (const n of notes) {
+      rows.push([
+        format(n.createdAt, 'yyyy-MM-dd'),
+        n.type,
+        noteBookTitle(n),
+        n.page ?? '',
+        (n.tags || []).join(' '),
+        n.text,
+      ].map(csvCell).join(','));
+    }
+    downloadText(
+      `my-library-notes-${format(new Date(), 'yyyy-MM-dd')}.csv`,
+      '\ufeff' + rows.join('\r\n'),
+      'text/csv;charset=utf-8'
+    );
+    toast(`Exported ${notes.length} notes to CSV`, 'success');
+  };
+
+  const exportMarkdown = () => {
+    if (notes.length === 0) {
+      toast('No notes to export yet', 'info');
+      return;
+    }
+    const byBook = new Map<string, Note[]>();
+    for (const n of notes) {
+      const title = noteBookTitle(n);
+      const list = byBook.get(title) || [];
+      list.push(n);
+      byBook.set(title, list);
+    }
+
+    const parts: string[] = [
+      '# Notes & Quotes',
+      '',
+      `_Exported from My Library on ${format(new Date(), 'PPP')}_`,
+    ];
+    for (const [title, bookNotes] of byBook) {
+      parts.push('', `## ${title}`);
+      for (const n of bookNotes) {
+        parts.push(
+          '',
+          `- **${n.type}**${n.page ? ` · page ${n.page}` : ''} · ${format(n.createdAt, 'yyyy-MM-dd')}`,
+          '',
+          n.type === 'quote' ? `> ${n.text}` : n.text
+        );
+        if ((n.tags || []).length > 0) {
+          parts.push('', [...new Set(n.tags)].map(t => `#${t}`).join(' '));
+        }
+      }
+    }
+    downloadText(
+      `my-library-notes-${format(new Date(), 'yyyy-MM-dd')}.md`,
+      parts.join('\n'),
+      'text/markdown;charset=utf-8'
+    );
+    toast(`Exported ${notes.length} notes to Markdown`, 'success');
   };
 
   return (
@@ -192,9 +273,14 @@ export function NotesJournalView({
             <p className="text-xs text-slate-300 leading-relaxed">
               Export your quotes and reflections formatted for Notion, Obsidian, or Markdown journals anytime.
             </p>
-            <button className="outline-button w-full text-xs" onClick={() => toast('Markdown / CSV export is coming soon', 'info')}>
-              Export All Notes (CSV/MD)
-            </button>
+            <div className="flex gap-2">
+              <button className="outline-button flex-1 text-xs" onClick={exportCsv}>
+                Export CSV
+              </button>
+              <button className="outline-button flex-1 text-xs" onClick={exportMarkdown}>
+                Export Markdown
+              </button>
+            </div>
           </section>
         </aside>
       </div>

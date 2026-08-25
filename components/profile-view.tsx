@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import {
   User, Award, Flame, BookOpen, Bookmark, Calendar, Settings, Shield,
   CheckCircle2, Lock, Edit3, Save, Download, Share2, Sparkles, Star,
@@ -81,7 +82,7 @@ export function ProfileView({ userProfile, stats: dbStats }: ProfileViewProps) {
           <div className="flex items-center gap-5">
             <div className="relative">
               {userProfile?.avatarUrl ? (
-                <img src={userProfile.avatarUrl} alt={userName} className="w-20 h-20 rounded-2xl object-cover shadow-xl border-2 border-amber-300/50" />
+                <Image src={userProfile.avatarUrl} alt={userName} width={80} height={80} className="w-20 h-20 rounded-2xl object-cover shadow-xl border-2 border-amber-300/50" />
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-black text-3xl flex items-center justify-center shadow-xl border-2 border-amber-300/50">
                   {userName.charAt(0)}

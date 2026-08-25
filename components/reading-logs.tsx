@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { CalendarDays, Clock, BookOpen, Plus, Search } from 'lucide-react';
 import type { ReadingSession, LibraryEntry, Book } from '@/lib/types';
 
@@ -118,7 +119,7 @@ export function ReadingLogsView({
               <div key={session.id} className="panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-amber-500/30 transition-colors p-4 rounded-xl">
                 <div className="flex items-center gap-4">
                   {session.book?.coverUrl ? (
-                    <img src={session.book.coverUrl} alt={session.book.title} className="w-10 h-14 object-cover rounded shadow" style={{ background: 'var(--faint)' }} />
+                    <Image src={session.book.coverUrl} alt={session.book.title} width={40} height={56} className="w-10 h-14 object-cover rounded shadow" style={{ background: 'var(--faint)' }} />
                   ) : (
                     <div className="w-12 h-18 rounded-lg flex items-center justify-center shadow-inner" style={{ background: 'var(--faint)', color: 'var(--muted)' }}>
                       <BookOpen size={16} />

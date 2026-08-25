@@ -4,7 +4,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: 'covers.openlibrary.org' },
+      { protocol: 'https', hostname: 'books.google.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'i.pinimg.com' },
+    ],
   },
 }
 

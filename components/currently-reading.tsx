@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CoverImage } from '@/components/cover-image';
 import {
   BookOpen, Calendar, Clock, Bookmark, Plus, Star, Heart, Edit3,
   ChevronRight, Tag, CheckCircle2, MessageSquareQuote, FileText, Sliders
@@ -63,10 +64,12 @@ export function CurrentlyReadingView({
       {/* Hero card */}
       <div className="panel detail-panel !p-6">
         <div className="flex flex-col md:flex-row gap-6 items-start">
-          <img 
-            src={book.coverUrl} 
-            alt={book.title} 
-            className="w-36 h-52 object-cover rounded-lg shadow-xl border border-[var(--border)] shrink-0" 
+          <CoverImage
+            src={book.coverUrl}
+            alt={book.title}
+            width={144}
+            height={208}
+            className="w-36 h-52 object-cover rounded-lg shadow-xl border border-[var(--border)] shrink-0"
             onError={e => { (e.target as HTMLElement).style.background = book.coverColor || '#b7791f'; }}
           />
 

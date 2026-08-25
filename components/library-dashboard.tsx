@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import {
   BookOpen, LayoutDashboard, Grid2X2, Bookmark, CalendarDays, Flame, Tags,
   TrendingUp, Users, ChevronRight, Plus, Search, Bell, Sun, Moon, ChevronDown,
-  X, Check, Star, Filter, Heart, MessageSquare, User, Settings, Award, LogOut, Download, Sliders, Menu
+  X, Check, Star, Filter, Heart, MessageSquare, User, Settings, Award, LogOut, Download, Sliders, Menu, Camera
 } from 'lucide-react';
 import { CurrentlyReadingView } from '@/components/currently-reading';
 import { AnalyticsView } from '@/components/analytics-view';
@@ -13,6 +14,8 @@ import { VirtualLibraryView } from '@/components/virtual-library';
 import { ReadingLogsView } from '@/components/reading-logs';
 import { ProfileView } from '@/components/profile-view';
 import { BookEditModal } from '@/components/book-edit-modal';
+import { BarcodeScanner } from '@/components/barcode-scanner';
+import { CoverImage } from '@/components/cover-image';
 import type { Book, LibraryEntry, ReadingSession, Note, Shelf, ReadingGoal, ReadingStats } from '@/lib/types';
 import { searchExternalBooks } from '@/lib/api';
 import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';
@@ -67,6 +70,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const [apiSearch, setApiSearch] = useState('');
   const [apiResults, setApiResults] = useState<Book[]>([]);
   const [loadingApi, setLoadingApi] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
   // Quick Session modal state
   const [selectedEntryForSession, setSelectedEntryForSession] = useState<string>('');
@@ -125,12 +129,21 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const tbrEntries = entries.filter(e => e.status === 'tbr');
   const activeCurrentlyReadingEntry = readingEntries[0] || entries[0];
 
-  const handleApiSearch = async () => {
-    if (!apiSearch.trim()) return;
+  const runApiSearch = async (query: string) => {
+    if (!query.trim()) return;
     setLoadingApi(true);
-    const results = await searchExternalBooks(apiSearch);
+    const results = await searchExternalBooks(query);
     setApiResults(results);
     setLoadingApi(false);
+  };
+
+  const handleApiSearch = async () => runApiSearch(apiSearch);
+
+  const handleScan = (code: string) => {
+    setScanning(false);
+    setApiSearch(code);
+    toast(`ISBN ${code} scanned — searching…`, 'info');
+    runApiSearch(code);
   };
 
   const handleAddBookToDb = async (book: Book, status: 'tbr' | 'reading' | 'read' = 'reading') => {
@@ -197,7 +210,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
       <aside className="sidebar">
         <div className="brand cursor-pointer" onClick={() => setActive('Dashboard')}>
           <div className="brand-mark overflow-hidden">
-            <img src="./my-logo-1.png" alt="Logo" className="w-full h-full object-cover" />
+            <Image src="/my-logo-1.png" alt="Logo" width={30} height={30} className="w-full h-full object-cover" />
           </div>
           <span>My Library</span>
         </div>
@@ -301,7 +314,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 transition-colors border border-white/5"
               >
                 {userProfile.avatarUrl ? (
-                  <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image src={userProfile.avatarUrl} alt={userProfile.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <div className="avatar">{userProfile.name.charAt(0)}</div>
                 )}
@@ -317,7 +330,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 <div className="absolute right-0 top-12 w-80 bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-4 space-y-4 z-50">
                   <div className="flex items-center gap-3 pb-3 border-b border-white/10">
                     {userProfile.avatarUrl ? (
-                      <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-11 h-11 rounded-full object-cover border border-white/10" />
+                      <Image src={userProfile.avatarUrl} alt={userProfile.name} width={44} height={44} className="w-11 h-11 rounded-full object-cover border border-white/10" />
                     ) : (
                       <div className="avatar w-11 h-11 text-base">{userProfile.name.charAt(0)}</div>
                     )}
@@ -516,7 +529,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                     className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 text-left transition-colors"
                     onClick={() => { setSearchOpen(false); setSelectedBook(book); setActive('Currently Reading'); }}
                   >
-                    <img src={book.coverUrl} alt={book.title} className="w-8 h-11 object-cover rounded bg-slate-800" />
+                    <CoverImage src={book.coverUrl} alt={book.title} width={32} height={44} className="w-8 h-11 object-cover rounded bg-slate-800" />
                     <div>
                       <h4 className="text-xs font-semibold text-white">{book.title}</h4>
                       <p className="text-[11px] text-slate-400">{book.author}</p>
@@ -550,17 +563,31 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                   className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-amber-500/50"
                 />
               </div>
+              <button
+                className={`outline-button text-xs !py-2.5 !px-3 shrink-0 flex items-center gap-1.5 ${scanning ? '!border-amber-500/60 !text-amber-500' : ''}`}
+                onClick={() => setScanning(s => !s)}
+                title="Scan an ISBN barcode with your camera"
+              >
+                <Camera size={14} /> {scanning ? 'Cancel' : 'Scan'}
+              </button>
               <button className="primary text-xs !py-2.5 !px-4 shrink-0" onClick={handleApiSearch} disabled={loadingApi}>
                 {loadingApi ? 'Searching...' : 'Search Online'}
               </button>
             </div>
+
+            {scanning && (
+              <BarcodeScanner
+                onDetected={handleScan}
+                onError={(msg) => { setScanning(false); toast(msg, 'error'); }}
+              />
+            )}
 
             <div className="space-y-2 max-h-72 overflow-y-auto pt-1">
               {apiResults.length > 0 ? (
                 apiResults.map(book => (
                   <div key={book.id} className="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-white/5 text-xs hover:border-amber-500/30 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
-                      <img src={book.coverUrl} alt={book.title} className="w-10 h-14 object-cover rounded shadow bg-slate-800 shrink-0" />
+                      <CoverImage src={book.coverUrl} alt={book.title} width={40} height={56} className="w-10 h-14 object-cover rounded shadow bg-slate-800 shrink-0" />
                       <div className="min-w-0">
                         <h4 className="font-bold text-white truncate">{book.title}</h4>
                         <p className="text-slate-400 truncate">{book.author} ({book.publishedYear || 'N/A'})</p>
@@ -860,8 +887,8 @@ function DashboardView({
                     setSelectedBook(b);
                     setActive('Currently Reading');
                   }}>
-                    <div className="aspect-[2/3] rounded overflow-hidden bg-slate-800 shadow-md group-hover:scale-105 transition-transform duration-200">
-                      <img src={b.coverUrl} alt={b.title} className="w-full h-full object-cover" />
+                    <div className="relative aspect-[2/3] rounded overflow-hidden bg-slate-800 shadow-md group-hover:scale-105 transition-transform duration-200">
+                      <CoverImage src={b.coverUrl} alt={b.title} fill sizes="(max-width: 700px) 45vw, 160px" className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <h4 className="text-xs font-semibold text-white truncate leading-snug">{b.title}</h4>
@@ -889,8 +916,8 @@ function DashboardView({
                   const b = entry?.book || books[0];
                   return (
                     <div key={s.id} className="flex gap-3 items-start">
-                      <div className="w-12 h-16 rounded bg-slate-800 overflow-hidden shrink-0 shadow-md border border-white/5">
-                        <img src={b.coverUrl} alt={b.title} className="w-full h-full object-cover" />
+                      <div className="relative w-12 h-16 rounded bg-slate-800 overflow-hidden shrink-0 shadow-md border border-white/5">
+                        <CoverImage src={b.coverUrl} alt={b.title} fill sizes="48px" className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
@@ -930,8 +957,8 @@ function DashboardView({
 
             {currentReadingBook && (
               <div className="flex gap-4 items-start pt-1">
-                <div className="w-32 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
-                  <img src={currentReadingBook.coverUrl} alt={currentReadingBook.title} className="w-full h-full object-cover" />
+                <div className="relative w-32 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
+                  <CoverImage src={currentReadingBook.coverUrl} alt={currentReadingBook.title} fill sizes="128px" className="w-full h-full object-cover" />
                 </div>
 
                 <div className="space-y-3 flex-1">
