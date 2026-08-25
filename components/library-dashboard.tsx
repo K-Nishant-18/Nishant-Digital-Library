@@ -935,6 +935,68 @@ function DashboardView({
   const currentReadingBook = currentReadingEntry?.book || books[0];
   const tbrEntries = entries.filter(e => e.status === 'tbr');
 
+  const currentlyReadingCard = (
+    <div className="bg-[#141618] border border-[#232629] rounded-lg p-5 sm:p-6 space-y-4">
+      <div className="flex justify-between items-center">
+        <span className="text-[12px] font-bold tracking-wider text-slate-400 uppercase">Currently Reading</span>
+        <button
+          className="text-slate-500 hover:text-amber-400 transition-colors p-1 rounded hover:bg-white/5"
+          onClick={() => currentReadingEntry && onEditBook?.(currentReadingEntry)}
+          title="Edit Book Details"
+        >
+          <Sliders size={16} />
+        </button>
+      </div>
+
+      {currentReadingBook && (
+        <div className="flex gap-4 items-start pt-1">
+          <div className="relative w-24 sm:w-32 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
+            <CoverImage src={currentReadingBook.coverUrl} alt={currentReadingBook.title} fill sizes="(max-width: 640px) 96px, 128px" className="w-full h-full object-cover" />
+          </div>
+
+          <div className="space-y-3 flex-1 min-w-0">
+            <div>
+              <h3 className="text-base font-bold text-white leading-tight line-clamp-2">{currentReadingBook.title}</h3>
+              <p className="text-sm text-slate-400 mt-0.5 truncate">{currentReadingBook.author}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: `${currentReadingEntry?.progressPercent || 0}%` }} />
+              </div>
+              <div className="text-right text-[12px] text-amber-400 font-semibold">{currentReadingEntry?.progressPercent || 0}%</div>
+            </div>
+
+            <button
+              className="w-full bg-[#232628] hover:bg-[#2c3033] text-white text-sm font-semibold py-2 rounded transition-colors"
+              onClick={() => setActive('Currently Reading')}
+            >
+              Continue Reading
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3 pt-4 border-t border-white/5">
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Latest Note / Quote</span>
+          <button className="text-xs text-amber-500 hover:text-amber-400 font-medium" onClick={onAddNote}>
+            Add note +
+          </button>
+        </div>
+
+        {notes.length > 0 ? (
+          <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-xs">
+            <p className="text-slate-300">"{notes[0].text}"</p>
+            <p className="text-[10px] text-amber-400 mt-2">— Page {notes[0].page || 'N/A'}</p>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500">No notes written yet.</p>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-5 text-slate-200 font-sans">
       {/* Header */}
@@ -948,8 +1010,11 @@ function DashboardView({
         </div>
       </div>
 
-      {/* 4 Stat Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      {/* Currently Reading — pinned to top on mobile */}
+      <div className="lg:hidden">{currentlyReadingCard}</div>
+
+      {/* 4 Stat Cards Row — 2×2 on phones */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="bg-[#141618] border border-[#232629] rounded-lg p-4 flex flex-col justify-between min-h-[112px]">
           <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             <Flame size={14} className="text-amber-500" />
@@ -1085,65 +1150,7 @@ function DashboardView({
 
         {/* Right Column: Currently Reading Card + Quick Actions */}
         <div className="space-y-4">
-          <div className="bg-[#141618] border border-[#232629] rounded-lg p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-[12px] font-bold tracking-wider text-slate-400 uppercase">Currently Reading</span>
-              <button
-                className="text-slate-500 hover:text-amber-400 transition-colors p-1 rounded hover:bg-white/5"
-                onClick={() => currentReadingEntry && onEditBook?.(currentReadingEntry)}
-                title="Edit Book Details"
-              >
-                <Sliders size={16} />
-              </button>
-            </div>
-
-            {currentReadingBook && (
-              <div className="flex gap-4 items-start pt-1">
-                <div className="relative w-32 aspect-[2/3] rounded bg-slate-800 overflow-hidden shrink-0 shadow-lg border border-white/5">
-                  <CoverImage src={currentReadingBook.coverUrl} alt={currentReadingBook.title} fill sizes="128px" className="w-full h-full object-cover" />
-                </div>
-
-                <div className="space-y-3 flex-1">
-                  <div>
-                    <h3 className="text-base font-bold text-white leading-tight">{currentReadingBook.title}</h3>
-                    <p className="text-sm text-slate-400 mt-0.5">{currentReadingBook.author}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full" style={{ width: `${currentReadingEntry?.progressPercent || 0}%` }} />
-                    </div>
-                    <div className="text-right text-[12px] text-amber-400 font-semibold">{currentReadingEntry?.progressPercent || 0}%</div>
-                  </div>
-
-                  <button
-                    className="w-full bg-[#232628] hover:bg-[#2c3033] text-white text-sm font-semibold py-2 rounded transition-colors"
-                    onClick={() => setActive('Currently Reading')}
-                  >
-                    Continue Reading
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-3 pt-4 border-t border-white/5">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Latest Note / Quote</span>
-                <button className="text-xs text-amber-500 hover:text-amber-400 font-medium" onClick={onAddNote}>
-                  Add note +
-                </button>
-              </div>
-
-              {notes.length > 0 ? (
-                <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-xs">
-                  <p className="text-slate-300">"{notes[0].text}"</p>
-                  <p className="text-[10px] text-amber-400 mt-2">— Page {notes[0].page || 'N/A'}</p>
-                </div>
-              ) : (
-                <p className="text-xs text-slate-500">No notes written yet.</p>
-              )}
-            </div>
-          </div>
+          <div className="hidden lg:block">{currentlyReadingCard}</div>
 
           {/* Quick Actions Card */}
           <div className="bg-[#141618] border border-[#232629] rounded-lg p-3 space-y-1.5">
