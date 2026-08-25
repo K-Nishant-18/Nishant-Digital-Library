@@ -317,9 +317,13 @@ export function BookReaderModal({ entry, onClose }: BookReaderModalProps) {
     setFormat(meta.format!);
     setAnnotations((meta.annotations as ReaderAnnotation[]) ?? []);
     if (meta.progress?.page) setPage(meta.progress.page);
-    const res = await fetch(`/api/reader/${entry.id}`);
-    if (!res.ok) { toast('Could not download the book file', 'error'); return; }
-    setFileData(await res.arrayBuffer());
+
+    // EPUB needs the raw bytes client-side; PDF streams itself from the API route
+    if (meta.format === 'epub') {
+      const res = await fetch(`/api/reader/${entry.id}`);
+      if (!res.ok) { toast('Could not download the book file', 'error'); return; }
+      setFileData(await res.arrayBuffer());
+    }
     setPhase('ready');
   }, [entry.id]);
 
@@ -412,7 +416,7 @@ export function BookReaderModal({ entry, onClose }: BookReaderModalProps) {
           />
         )}
 
-        {phase === 'ready' && fileData && format === 'pdf' && (
+        {phase === 'ready' && format === 'pdf' && (
           <div className="absolute inset-0" style={{
             filter: `brightness(${prefs.brightness}) ${
               prefs.theme === 'dark' || prefs.theme === 'black'
@@ -421,7 +425,7 @@ export function BookReaderModal({ entry, onClose }: BookReaderModalProps) {
             }`,
           }}>
             <PdfPane
-              data={fileData}
+              url={`/api/reader/${entry.id}`}
               page={page}
               onPageChange={handlePdfPage}
               onNumPages={handleNumPages}

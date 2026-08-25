@@ -1,10 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import type { ReaderAnnotation } from '@/lib/types';
 import { bindSwipe, isCoarsePointer } from '@/components/gestures';
+
+// Point pdf.js at the worker copied into /public (must match the bundled pdfjs-dist version)
+if (typeof window !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+}
 
 export interface PdfSelection {
   text: string;
@@ -13,7 +18,8 @@ export interface PdfSelection {
 }
 
 interface PdfPaneProps {
-  data: ArrayBuffer;
+  /** Authenticated API route serving the PDF bytes (pdf.js fetches it itself) */
+  url: string;
   page: number;
   onPageChange: (page: number) => void;
   onNumPages: (numPages: number) => void;
@@ -28,13 +34,18 @@ interface PdfPaneProps {
 const BASE_PAGE_WIDTH = 612;
 
 export function PdfPane({
-  data, page, onPageChange, onNumPages, annotations, onSelection, onTap, registerApi,
+  url, page, onPageChange, onNumPages, annotations, onSelection, onTap, registerApi,
 }: PdfPaneProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [scale, setScale] = useState(1);
   const [autoFit, setAutoFit] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageWrapRef = useRef<HTMLDivElement>(null);
+
+  // Stable identity so react-pdf doesn't reload the document on every render.
+  // Loading by URL also avoids ArrayBuffer detachment (pdf.js transfers buffers
+  // to its worker, which would corrupt any raw bytes we passed in).
+  const file = useMemo(() => ({ url }), [url]);
 
   // Fit width to the available container
   useEffect(() => {
@@ -140,7 +151,7 @@ export function PdfPane({
         onClick={handleTap}
       >
         <Document
-          file={{ data }}
+          file={file}
           onLoadSuccess={(doc) => { setNumPages(doc.numPages); onNumPages(doc.numPages); }}
           loading={<div className="text-slate-400 text-xs p-8">Loading PDF…</div>}
           error={<div className="text-red-400 text-xs p-8">Could not open this PDF.</div>}
