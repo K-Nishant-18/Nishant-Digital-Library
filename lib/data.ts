@@ -531,7 +531,7 @@ export const mockShelves: Shelf[] = [
 ];
 
 export const mockAuthors: Author[] = [
-  { id: 'author-1', name: 'James Clear', avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'James Clear is an author and speaker focused on habits, decision making, and continuous improvement.', birthYear: 1986, bookCount: 1, createdAt: subDays(now, 200), updatedAt: subDays(now, 10) },
+  { id: 'author-1', name: 'James Clear', avatarUrl: 'https://images.unsplash.com/photo-1649710025212-5b63cda94759?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', bio: 'James Clear is an author and speaker focused on habits, decision making, and continuous improvement.', birthYear: 1986, bookCount: 1, createdAt: subDays(now, 200), updatedAt: subDays(now, 10) },
   { id: 'author-2', name: 'Gabrielle Zevin', avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face', bio: 'Gabrielle Zevin is an American author and screenwriter.', birthYear: 1977, bookCount: 1, createdAt: subDays(now, 150), updatedAt: subDays(now, 5) },
   { id: 'author-3', name: 'Rick Rubin', avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', bio: 'Rick Rubin is an American record producer.', birthYear: 1963, bookCount: 1, createdAt: subDays(now, 100), updatedAt: subDays(now, 2) },
   { id: 'author-4', name: 'Matt Haig', avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face', bio: 'Matt Haig is an English author and journalist.', birthYear: 1975, bookCount: 1, createdAt: subDays(now, 80), updatedAt: subDays(now, 1) },

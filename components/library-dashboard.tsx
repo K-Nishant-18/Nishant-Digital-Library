@@ -81,7 +81,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   // Real DB Data bindings with fallback
-  const userProfile = data?.userProfile || { name: 'Kumar Nishant', currentStreak: 42, level: 15 };
+  const userProfile = data?.userProfile || { name: 'Kumar Nishant', currentStreak: 42, level: 15, avatarUrl: 'https://i.pinimg.com/1200x/ee/eb/85/eeeb85276914a88fbd7ce9b695537f95.jpg' };
   const stats = data?.stats || mockStats;
   const books = data?.books?.length ? data.books : mockBooks;
   const entries = data?.entries || [];
@@ -160,8 +160,8 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="brand cursor-pointer" onClick={() => setActive('Dashboard')}>
-          <div className="brand-mark">
-            <BookOpen size={19} />
+          <div className="brand-mark overflow-hidden">
+            <img src="./my-logo-1.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <span>My Library</span>
         </div>
@@ -265,7 +265,11 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 transition-colors border border-white/5"
               >
-                <div className="avatar">{userProfile.name.charAt(0)}</div>
+                {userProfile.avatarUrl ? (
+                  <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="avatar">{userProfile.name.charAt(0)}</div>
+                )}
                 <div className="hidden md:flex flex-col text-left">
                   <span className="text-xs font-bold text-white leading-tight">{userProfile.name}</span>
                   <span className="text-[10px] text-amber-400 font-medium">Level {userProfile.level || 15} Reader</span>
@@ -277,7 +281,11 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               {profileOpen && (
                 <div className="absolute right-0 top-12 w-80 bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-4 space-y-4 z-50">
                   <div className="flex items-center gap-3 pb-3 border-b border-white/10">
-                    <div className="avatar w-11 h-11 text-base">{userProfile.name.charAt(0)}</div>
+                    {userProfile.avatarUrl ? (
+                      <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-11 h-11 rounded-full object-cover border border-white/10" />
+                    ) : (
+                      <div className="avatar w-11 h-11 text-base">{userProfile.name.charAt(0)}</div>
+                    )}
                     <div>
                       <h3 className="text-sm font-bold text-white">{userProfile.name}</h3>
                       <p className="text-xs text-slate-400">{userProfile.email || 'kumar.nishant@devreader.com'}</p>
