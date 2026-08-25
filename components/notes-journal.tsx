@@ -5,8 +5,8 @@ import {
   Bookmark, Search, Plus, Tag, Heart, MessageSquare, Quote, Highlighter as Highlight,
   ChevronRight, Filter, BookOpen, Share2, Copy, Check
 } from 'lucide-react';
-import { mockNotes, mockBooks, mockTags } from '@/lib/data';
 import type { Note, Book } from '@/lib/types';
+import { toast } from '@/components/toast';
 import { format } from 'date-fns';
 
 interface NotesJournalProps {
@@ -19,13 +19,17 @@ interface NotesJournalProps {
 export function NotesJournalView({
   onAddNote,
   activeTab = 'Notes & Quotes',
-  notes: dbNotes,
-  books: dbBooks,
+  notes = [],
+  books = [],
 }: NotesJournalProps) {
-  const notes = dbNotes || mockNotes;
-  const books = dbBooks || mockBooks;
-
   const [searchQuery, setSearchQuery] = useState('');
+
+  const allTags = [...notes.flatMap(n => n.tags ?? []).reduce((map, tag) => {
+    map.set(tag, (map.get(tag) ?? 0) + 1);
+    return map;
+  }, new Map<string, number>())]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, usageCount: count }));
 
   // Map parent activeTab to type filter
   const initialType = activeTab === 'Reflections' ? 'reflection' : activeTab === 'Chapter Logs' ? 'note' : 'all';
@@ -168,9 +172,9 @@ export function NotesJournalView({
             </div>
 
             <div className="flex flex-wrap gap-1.5 pt-1">
-              {mockTags.map(tag => (
+              {allTags.map(tag => (
                 <button
-                  key={tag.id}
+                  key={tag.name}
                   className={`text-xs px-2.5 py-1 rounded-md transition-colors ${selectedTag === tag.name
                       ? 'bg-amber-500 text-black font-semibold'
                       : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-white/5'
@@ -188,7 +192,7 @@ export function NotesJournalView({
             <p className="text-xs text-slate-300 leading-relaxed">
               Export your quotes and reflections formatted for Notion, Obsidian, or Markdown journals anytime.
             </p>
-            <button className="outline-button w-full text-xs" onClick={() => alert('Exporting notes to Markdown CSV...')}>
+            <button className="outline-button w-full text-xs" onClick={() => toast('Markdown / CSV export is coming soon', 'info')}>
               Export All Notes (CSV/MD)
             </button>
           </section>

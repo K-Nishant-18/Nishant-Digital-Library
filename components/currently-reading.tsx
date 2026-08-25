@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  BookOpen, Calendar, Clock, Bookmark, Plus, Star, Heart, Edit3, 
+import {
+  BookOpen, Calendar, Clock, Bookmark, Plus, Star, Heart, Edit3,
   ChevronRight, Tag, CheckCircle2, MessageSquareQuote, FileText, Sliders
 } from 'lucide-react';
 import type { LibraryEntry, ReadingSession, Note, Chapter } from '@/lib/types';
-import { mockLibraryEntries, mockReadingSessions, mockChapters, mockNotes, mockAuthors } from '@/lib/data';
 import { format } from 'date-fns';
 
 interface CurrentlyReadingProps {
   onLogSession: () => void;
   onAddNote: () => void;
+  onAddBook?: () => void;
   onEditBook?: (entry: LibraryEntry) => void;
   entry?: LibraryEntry;
   sessions?: ReadingSession[];
@@ -19,9 +19,10 @@ interface CurrentlyReadingProps {
   chapters?: Chapter[];
 }
 
-export function CurrentlyReadingView({ 
-  onLogSession, 
+export function CurrentlyReadingView({
+  onLogSession,
   onAddNote,
+  onAddBook,
   onEditBook,
   entry,
   sessions: dbSessions,
@@ -29,14 +30,30 @@ export function CurrentlyReadingView({
   chapters: dbChapters,
 }: CurrentlyReadingProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'notes' | 'chapters'>('overview');
-  
-  const activeEntry: LibraryEntry = entry || mockLibraryEntries[0];
-  const book = activeEntry.book || mockLibraryEntries[0].book!;
-  
-  const sessions = dbSessions || mockReadingSessions.filter(s => s.libraryEntryId === activeEntry.id);
-  const chapters = dbChapters || mockChapters.filter(c => c.bookId === book.id);
-  const notes = dbNotes || mockNotes.filter(n => n.libraryEntryId === activeEntry.id);
-  const author = mockAuthors.find(a => a.name === book.author) || mockAuthors[0];
+
+  if (!entry || !entry.book) {
+    return (
+      <div className="panel text-center py-16 space-y-4">
+        <BookOpen size={36} className="mx-auto text-slate-600" />
+        <div>
+          <h2 className="text-lg font-bold text-white">Nothing in progress</h2>
+          <p className="text-xs text-[var(--muted)] mt-1">Pick a book from your library or add a new one to start reading.</p>
+        </div>
+        {onAddBook && (
+          <button className="primary mx-auto" onClick={onAddBook}>
+            <Plus size={16} /> Add a Book
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const activeEntry = entry;
+  const book = entry.book;
+
+  const sessions = (dbSessions ?? []).filter(s => s.libraryEntryId === activeEntry.id);
+  const chapters = dbChapters ?? [];
+  const notes = (dbNotes ?? []).filter(n => n.libraryEntryId === activeEntry.id);
 
   const totalMinutes = sessions.reduce((acc, s) => acc + (s.minutes || 0), 0);
   const avgPages = sessions.length ? Math.round(activeEntry.currentPage / sessions.length) : 20;
@@ -75,9 +92,11 @@ export function CurrentlyReadingView({
             
             <div className="flex items-center gap-4 text-sm text-[var(--muted)]">
               <span className="font-semibold">{book.author}</span>
-              <div className="flex items-center gap-1 text-amber-400">
-                ★ <span className="text-xs text-[var(--muted)] font-mono">{activeEntry.rating || 4.5} reader rating</span>
-              </div>
+              {activeEntry.rating && (
+                <div className="flex items-center gap-1 text-amber-400">
+                  ★ <span className="text-xs text-[var(--muted)] font-mono">{activeEntry.rating} your rating</span>
+                </div>
+              )}
             </div>
 
             {/* Progress bar */}
@@ -194,13 +213,14 @@ export function CurrentlyReadingView({
             <section className="panel space-y-4">
               <h2 className="text-lg font-bold">Author Profile</h2>
               <div className="flex items-center gap-3">
-                <img src={author.avatarUrl} alt={author.name} className="w-12 h-12 rounded-full object-cover border border-amber-500/30" />
+                <div className="w-12 h-12 rounded-full object-cover border border-amber-500/30 bg-slate-800 flex items-center justify-center text-lg font-bold text-amber-400">
+                  {book.author.charAt(0).toUpperCase()}
+                </div>
                 <div>
                   <h3 className="font-semibold">{book.author}</h3>
                   <p className="text-xs text-[var(--muted)]">Author</p>
                 </div>
               </div>
-              <p className="text-xs text-[var(--muted)]">{author.bio}</p>
             </section>
 
             <section className="panel space-y-3">

@@ -20,7 +20,6 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
   themeColor: '#0b0c0d',
   width: 'device-width',
   initialScale: 1,
@@ -28,14 +27,17 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');var light=t?t==='light':window.matchMedia('(prefers-color-scheme: light)').matches;if(light)document.documentElement.classList.add('light-mode');}catch(e){}})();`
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />

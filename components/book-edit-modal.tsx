@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, BookOpen, User, Image, FileText, Tag, Book as BookIcon, Calendar, Building, Globe, Type, Hash, Bookmark, Star, Heart, Repeat, Smile, Meh, Frown, Check, ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
-import { updateBookAction, updateLibraryEntryFullAction } from '@/lib/actions';
+import { updateBookAction, updateLibraryEntryAction } from '@/lib/actions';
 import type { Book, LibraryEntry } from '@/lib/types';
 
 export function BookEditModal({
@@ -90,7 +90,7 @@ export function BookEditModal({
       }
 
       // Update library entry details
-      const entryUpdateResult = await updateLibraryEntryFullAction({
+      const entryUpdateResult = await updateLibraryEntryAction({
         entryId: entry.id,
         status: entryData.status,
         rating: entryData.rating,

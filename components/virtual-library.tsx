@@ -5,7 +5,6 @@ import {
   Grid2X2, List, LayoutGrid, Filter, Search, Plus, Star, Heart, Bookmark,
   Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers, Sliders, Edit3
 } from 'lucide-react';
-import { mockBooks, mockShelves, mockLibraryEntries } from '@/lib/data';
 import type { Book, Shelf, LibraryEntry } from '@/lib/types';
 
 interface VirtualLibraryProps {
@@ -23,16 +22,12 @@ export function VirtualLibraryView({
   onAddBook,
   onEditBook,
   initialStatus = 'all',
-  books: dbBooks,
-  entries: dbEntries,
-  shelves: dbShelves,
+  books = [],
+  entries = [],
+  shelves = [],
 }: VirtualLibraryProps) {
-  const books = dbBooks || mockBooks;
-  const entries = dbEntries || mockLibraryEntries;
-  const shelves = dbShelves || mockShelves;
-
   const [viewMode, setViewMode] = useState<'grid' | 'shelf' | 'list'>('grid');
-  const [selectedShelf, setSelectedShelf] = useState<string>(shelves[0]?.id || 'shelf-1');
+  const [selectedShelf, setSelectedShelf] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [searchQuery, setSearchQuery] = useState('');
 

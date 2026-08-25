@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { CalendarDays, Clock, BookOpen, Plus, Search } from 'lucide-react';
-import { mockReadingSessions, mockLibraryEntries, mockBooks } from '@/lib/data';
 import type { ReadingSession, LibraryEntry, Book } from '@/lib/types';
 
 interface ReadingLogsProps {
@@ -12,22 +11,22 @@ interface ReadingLogsProps {
   books?: Book[];
 }
 
-export function ReadingLogsView({ 
+export function ReadingLogsView({
   onLogSession,
-  sessions: dbSessions,
-  entries: dbEntries,
-  books: dbBooks,
+  sessions,
+  entries,
+  books,
 }: ReadingLogsProps) {
-  const sessions = dbSessions || mockReadingSessions;
-  const entries = dbEntries || mockLibraryEntries;
-  const books = dbBooks || mockBooks;
+  const safeSessions = sessions ?? [];
+  const safeEntries = entries ?? [];
+  const safeBooks = books ?? [];
 
   const [filter, setFilter] = useState<'all' | 'this-week' | 'this-month'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const enrichedSessions = sessions.map(session => {
-    const entry = entries.find(e => e.id === session.libraryEntryId);
-    const book = entry?.book || books.find(b => b.id === entry?.bookId) || books[0] || { title: 'Book Session', author: 'Unknown', coverUrl: '', pageCount: 300 };
+  const enrichedSessions = safeSessions.map(session => {
+    const entry = safeEntries.find(e => e.id === session.libraryEntryId);
+    const book = entry?.book || safeBooks.find(b => b.id === entry?.bookId) || { title: 'Book Session', author: 'Unknown', coverUrl: '', pageCount: 300 };
     const pagesRead = (session.pageEnd || session.pageStart) - session.pageStart;
     return {
       ...session,
@@ -43,7 +42,7 @@ export function ReadingLogsView({
     return matchesSearch;
   });
 
-  const totalMinutes = sessions.reduce((acc, s) => acc + (s.minutes || 0), 0);
+  const totalMinutes = safeSessions.reduce((acc, s) => acc + (s.minutes || 0), 0);
   const totalPages = enrichedSessions.reduce((acc, s) => acc + s.pagesRead, 0);
 
   return (
@@ -65,18 +64,18 @@ export function ReadingLogsView({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="stat-card">
           <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Total Sessions</span>
-          <div className="text-3xl font-bold font-mono tracking-tight">{sessions.length}</div>
+          <div className="text-3xl font-bold font-mono tracking-tight">{safeSessions.length}</div>
           <p className="text-[11px] text-amber-500">Logged in database</p>
         </div>
         <div className="stat-card">
           <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Total Time Spent</span>
           <div className="text-3xl font-bold font-mono tracking-tight">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</div>
-          <p className="text-[11px] text-amber-500">Avg {Math.round(totalMinutes / (sessions.length || 1))} min/session</p>
+          <p className="text-[11px] text-amber-500">Avg {Math.round(totalMinutes / (safeSessions.length || 1))} min/session</p>
         </div>
         <div className="stat-card">
           <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Pages Logged</span>
           <div className="text-3xl font-bold font-mono tracking-tight">{totalPages.toLocaleString()}</div>
-          <p className="text-[11px] text-amber-500">Avg {Math.round(totalPages / (sessions.length || 1))} pages/session</p>
+          <p className="text-[11px] text-amber-500">Avg {Math.round(totalPages / (safeSessions.length || 1))} pages/session</p>
         </div>
       </div>
 

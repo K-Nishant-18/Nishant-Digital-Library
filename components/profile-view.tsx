@@ -6,7 +6,7 @@ import {
   CheckCircle2, Lock, Edit3, Save, Download, Share2, Sparkles, Star,
   TrendingUp, RefreshCw, Layers, Check, Trophy
 } from 'lucide-react';
-import { mockStats, mockBooks } from '@/lib/data';
+import { EMPTY_STATS } from '@/lib/empty-stats';
 import type { ReadingStats } from '@/lib/types';
 import { updateProfileAction, updateGoalsAction } from '@/lib/actions';
 
@@ -39,7 +39,7 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ userProfile, stats: dbStats }: ProfileViewProps) {
-  const stats = dbStats || mockStats;
+  const stats = dbStats ?? EMPTY_STATS;
 
   const [editing, setEditing] = useState(false);
   const [userName, setUserName] = useState(userProfile?.name || 'Kumar Nishant');

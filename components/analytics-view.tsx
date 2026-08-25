@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { 
   TrendingUp, Flame, Calendar, Award, BarChart3, PieChart, Clock, BookOpen, Star, Filter, Tags
 } from 'lucide-react';
-import { mockStats, mockReadingGoal } from '@/lib/data';
+import { EMPTY_STATS } from '@/lib/empty-stats';
 import type { ReadingStats, ReadingGoal } from '@/lib/types';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell
@@ -32,9 +32,8 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbSt
     onTabChange?.(tab);
   };
 
-  const stats = dbStats || mockStats;
-  const goal = dbGoal || mockReadingGoal;
-  const goalPercent = Math.min(100, Math.round(((stats.booksThisYear || 0) / (goal.targetBooks || 1)) * 100));
+  const stats = dbStats ?? EMPTY_STATS;
+  const goalPercent = Math.min(100, Math.round(((stats.booksThisYear || 0) / (dbGoal?.targetBooks || 60)) * 100));
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
 
@@ -94,7 +93,7 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbSt
           <div className="bg-slate-900/60 rounded-xl p-4 border border-white/5 grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-medium">Annual Goal</span>
-              <div className="text-xl font-bold text-amber-500 font-mono">{stats.booksThisYear || 0} / {goal.targetBooks} books</div>
+              <div className="text-xl font-bold text-amber-500 font-mono">{stats.booksThisYear || 0} / {dbGoal?.targetBooks ?? 60} books</div>
               <div className="progress">
                 <span style={{ width: `${goalPercent}%` }} />
               </div>

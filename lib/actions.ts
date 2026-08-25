@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/db';
+import { assertAuth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import type { Book, LibraryEntry, ReadingSession, Note, Shelf, ReadingGoal, ReadingStats } from '@/lib/types';
 
@@ -193,6 +194,7 @@ function computeStats(entries: LibraryEntry[], sessions: ReadingSession[], userP
 
 export async function getLibraryData() {
   try {
+    await assertAuth();
     // 1. User Profile
     let userProfile = await prisma.userProfile.findUnique({ where: { id: 'user-default' } });
     if (!userProfile) {
@@ -274,6 +276,7 @@ export async function getLibraryData() {
 
 export async function addBookToLibraryAction(book: Partial<Book>, status: 'tbr' | 'reading' | 'read' = 'tbr') {
   try {
+    await assertAuth();
     const newBook = await prisma.book.create({
       data: {
         title: book.title || 'Untitled',
@@ -324,6 +327,7 @@ export async function addBookToLibraryAction(book: Partial<Book>, status: 'tbr' 
 
 export async function deleteBookAction(entryId: string) {
   try {
+    await assertAuth();
     const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId } });
     if (!entry) return { success: false, error: 'Entry not found' };
 
@@ -341,6 +345,7 @@ export async function deleteBookAction(entryId: string) {
 // NEW: Update book details
 export async function updateBookAction(bookId: string, bookData: Partial<Book>) {
   try {
+    await assertAuth();
     const updatedBook = await prisma.book.update({
       where: { id: bookId },
       data: {
@@ -403,6 +408,7 @@ export async function updateLibraryEntryAction({
   dateFinished?: Date;
 }) {
   try {
+    await assertAuth();
     const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId }, include: { book: true } });
     if (!entry) return { success: false, error: 'Entry not found' };
 
@@ -436,67 +442,6 @@ export async function updateLibraryEntryAction({
   }
 }
 
-// NEW: Update library entry with all fields
-export async function updateLibraryEntryFullAction({
-  entryId,
-  status,
-  rating,
-  owned,
-  currentPage,
-  difficulty,
-  emotionalImpact,
-  wouldRecommend,
-  rereadValue,
-  dateStarted,
-  dateFinished,
-}: {
-  entryId: string;
-  status?: 'tbr' | 'reading' | 'read' | 'dnf';
-  rating?: number;
-  owned?: boolean;
-  currentPage?: number;
-  difficulty?: number;
-  emotionalImpact?: number;
-  wouldRecommend?: boolean;
-  rereadValue?: number;
-  dateStarted?: Date;
-  dateFinished?: Date;
-}) {
-  try {
-    const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId }, include: { book: true } });
-    if (!entry) return { success: false, error: 'Entry not found' };
-
-    const totalPages = entry.book.pageCount || 300;
-    const newPage = currentPage ?? entry.currentPage;
-    const progressPercent = Math.min(100, Math.round((newPage / totalPages) * 100));
-
-    await prisma.libraryEntry.update({
-      where: { id: entryId },
-      data: {
-        ...(status && { status }),
-        ...(rating !== undefined && { rating }),
-        ...(owned !== undefined && { owned }),
-        ...(currentPage !== undefined && { currentPage }),
-        ...(difficulty !== undefined && { difficulty }),
-        ...(emotionalImpact !== undefined && { emotionalImpact }),
-        ...(wouldRecommend !== undefined && { wouldRecommend }),
-        ...(rereadValue !== undefined && { rereadValue }),
-        ...(dateStarted && { dateStarted }),
-        ...(dateFinished && { dateFinished }),
-        ...(currentPage !== undefined || status === 'read' ? { progressPercent } : {}),
-        ...(status === 'reading' && !entry.dateStarted && !dateStarted && { dateStarted: new Date() }),
-        ...(status === 'read' && { dateFinished: new Date(), currentPage: totalPages, progressPercent: 100 }),
-      },
-    });
-
-    revalidatePath('/');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[updateLibraryEntryFullAction] Error:', error);
-    return { success: false, error: error.message };
-  }
-}
-
 // ──────────────────────────────────────────────────────────────────────────────
 // READING SESSIONS: Log session
 // ──────────────────────────────────────────────────────────────────────────────
@@ -511,6 +456,7 @@ export async function logReadingSessionAction({
   notes?: string;
 }) {
   try {
+    await assertAuth();
     const entry = await prisma.libraryEntry.findUnique({ where: { id: libraryEntryId }, include: { book: true } });
     if (!entry) return { success: false, error: 'Library entry not found' };
 
@@ -567,6 +513,7 @@ export async function addNoteAction({
   tags?: string[];
 }) {
   try {
+    await assertAuth();
     const note = await prisma.note.create({
       data: { libraryEntryId, type, text, page, tags: tags ?? [], isFavorite: false },
     });
@@ -583,6 +530,7 @@ export async function addNoteAction({
 
 export async function deleteNoteAction(noteId: string) {
   try {
+    await assertAuth();
     await prisma.note.delete({ where: { id: noteId } });
     revalidatePath('/');
     return { success: true };
@@ -594,6 +542,7 @@ export async function deleteNoteAction(noteId: string) {
 
 export async function toggleNoteFavoriteAction(noteId: string, isFavorite: boolean) {
   try {
+    await assertAuth();
     await prisma.note.update({ where: { id: noteId }, data: { isFavorite } });
     revalidatePath('/');
     return { success: true };
@@ -620,6 +569,7 @@ export async function updateNoteAction({
   type?: 'note' | 'quote' | 'reflection' | 'highlight';
 }) {
   try {
+    await assertAuth();
     await prisma.note.update({
       where: { id: noteId },
       data: {
@@ -644,6 +594,7 @@ export async function updateNoteAction({
 
 export async function addShelfAction({ name, description, color }: { name: string; description?: string; color?: string }) {
   try {
+    await assertAuth();
     const shelf = await prisma.shelf.create({ data: { name, description, color, isDefault: false } });
     revalidatePath('/');
     return { success: true, shelfId: shelf.id };
@@ -655,6 +606,7 @@ export async function addShelfAction({ name, description, color }: { name: strin
 
 export async function addBookToShelfAction(shelfId: string, libraryEntryId: string) {
   try {
+    await assertAuth();
     await prisma.shelfOnEntry.upsert({
       where: { shelfId_libraryEntryId: { shelfId, libraryEntryId } },
       update: {},
@@ -671,6 +623,7 @@ export async function addBookToShelfAction(shelfId: string, libraryEntryId: stri
 // NEW: Remove book from shelf
 export async function removeBookFromShelfAction(shelfId: string, libraryEntryId: string) {
   try {
+    await assertAuth();
     await prisma.shelfOnEntry.delete({
       where: { shelfId_libraryEntryId: { shelfId, libraryEntryId } },
     });
@@ -685,6 +638,7 @@ export async function removeBookFromShelfAction(shelfId: string, libraryEntryId:
 // NEW: Delete shelf
 export async function deleteShelfAction(shelfId: string) {
   try {
+    await assertAuth();
     await prisma.shelf.delete({ where: { id: shelfId } });
     revalidatePath('/');
     return { success: true };
@@ -709,6 +663,7 @@ export async function updateShelfAction({
   icon?: string;
 }) {
   try {
+    await assertAuth();
     await prisma.shelf.update({
       where: { id: shelfId },
       data: {
@@ -740,6 +695,7 @@ export async function updateProfileAction({
   dailyMinutesGoal?: number;
 }) {
   try {
+    await assertAuth();
     await prisma.userProfile.update({
       where: { id: 'user-default' },
       data: {
@@ -766,6 +722,7 @@ export async function updateGoalsAction({
   year?: number;
 }) {
   try {
+    await assertAuth();
     const goalYear = year ?? new Date().getFullYear();
     await prisma.readingGoal.upsert({
       where: { year: goalYear },

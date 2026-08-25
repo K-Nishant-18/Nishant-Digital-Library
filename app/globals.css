@@ -27,7 +27,7 @@
 }
 
 /* Light Mode Overrides */
-.app-shell.light-mode {
+html.light-mode {
   color-scheme: light;
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -38,55 +38,67 @@
   --border: #e2e8f0;
   --amber: #d97706;
   --amber-soft: #fef3c7;
+}
+
+html.light-mode .app-shell {
   color: #0f172a !important;
   background: #f8fafc !important;
 }
 
-.app-shell.light-mode .sidebar,
-.app-shell.light-mode .mobile-drawer {
+html.light-mode .sidebar,
+html.light-mode .mobile-drawer {
   background: #ffffff !important;
   border-right-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 
-.app-shell.light-mode .nav-item {
+html.light-mode .nav-item {
   color: #475569 !important;
 }
 
-.app-shell.light-mode .nav-item:hover {
+html.light-mode .nav-item:hover {
   background: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-.app-shell.light-mode .nav-item.active {
+html.light-mode .nav-item.active {
   background: #fef3c7 !important;
   color: #b45309 !important;
 }
 
-.app-shell.light-mode .topbar {
+html.light-mode .topbar {
   border-bottom-color: #e2e8f0 !important;
   background: #ffffff !important;
 }
 
-.app-shell.light-mode .search-trigger {
+html.light-mode .theme-toggle-btn {
+  background: var(--faint);
+  color: var(--foreground);
+}
+
+html.light-mode .theme-toggle-btn:hover {
+  background: #cbd5e1;
+}
+
+html.light-mode .search-trigger {
   background: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
   color: #64748b !important;
 }
 
-.app-shell.light-mode .search-trigger kbd {
+html.light-mode .search-trigger kbd {
   background: #e2e8f0 !important;
   color: #475569 !important;
   border-color: #cbd5e1 !important;
 }
 
-.app-shell.light-mode .panel,
-.app-shell.light-mode .stat-card,
-.app-shell.light-mode .note-card,
-.app-shell.light-mode .chapter-row,
-.app-shell.light-mode .session-row,
-.app-shell.light-mode .utility-row,
-.app-shell.light-mode .detail-panel {
+html.light-mode .panel,
+html.light-mode .stat-card,
+html.light-mode .note-card,
+html.light-mode .chapter-row,
+html.light-mode .session-row,
+html.light-mode .utility-row,
+html.light-mode .detail-panel {
   background-color: #ffffff !important;
   background-image: none !important;
   border-color: #e2e8f0 !important;
@@ -94,10 +106,9 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Override Tailwind inline gradients in light mode */
-.app-shell.light-mode [class*="bg-gradient-to"],
-.app-shell.light-mode [class*="from-slate-"],
-.app-shell.light-mode [class*="to-slate-"] {
+/* Neutralize dark slate gradients (cards, banners); amber gradients stay */
+html.light-mode [class*="from-slate-"],
+html.light-mode [class*="to-slate-"] {
   background-image: none !important;
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
@@ -105,121 +116,216 @@
 }
 
 /* Light mode quote cards and highlight callouts */
-.app-shell.light-mode [class*="bg-amber-500/10"],
-.app-shell.light-mode [class*="bg-amber-500/20"] {
+html.light-mode [class*="bg-amber-500/10"],
+html.light-mode [class*="bg-amber-500/20"] {
   background-color: #fef3c7 !important;
   border-color: #fde68a !important;
   color: #92400e !important;
 }
 
-.app-shell.light-mode [class*="text-amber-200"],
-.app-shell.light-mode [class*="text-amber-100"] {
+html.light-mode [class*="text-amber-200"],
+html.light-mode [class*="text-amber-100"] {
   color: #92400e !important;
 }
 
-.app-shell.light-mode [class*="bg-purple-500/20"] {
+html.light-mode [class*="bg-purple-500/20"] {
   background-color: #f3e8ff !important;
   border-color: #e9d5ff !important;
   color: #6b21a8 !important;
 }
 
-.app-shell.light-mode [class*="bg-blue-500/20"] {
+html.light-mode [class*="bg-blue-500/20"] {
   background-color: #dbeafe !important;
   border-color: #bfdbfe !important;
   color: #1e40af !important;
 }
 
 /* Light mode border overrides */
-.app-shell.light-mode [class*="border-white/"] {
+html.light-mode [class*="border-white/"] {
   border-color: #e2e8f0 !important;
 }
 
-.app-shell.light-mode .streak-widget {
+html.light-mode .streak-widget {
   background: #fffbeb !important;
   border-color: #fef3c7 !important;
   color: #0f172a !important;
 }
 
-.app-shell.light-mode [class*="bg-[#232628]"] {
+html.light-mode [class*="bg-[#232628]"] {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-.app-shell.light-mode [class*="bg-[#2a2d30]"] {
+html.light-mode [class*="bg-[#2a2d30]"] {
   background-color: #e2e8f0 !important;
 }
 
-.app-shell.light-mode h1,
-.app-shell.light-mode h2,
-.app-shell.light-mode h3,
-.app-shell.light-mode h4,
-.app-shell.light-mode strong,
-.app-shell.light-mode .text-white,
-.app-shell.light-mode [class*="text-white"] {
+html.light-mode h1,
+html.light-mode h2,
+html.light-mode h3,
+html.light-mode h4,
+html.light-mode strong,
+html.light-mode .text-white,
+html.light-mode [class*="text-white"] {
   color: #0f172a !important;
 }
 
-.app-shell.light-mode p,
-.app-shell.light-mode [class*="text-slate-200"],
-.app-shell.light-mode [class*="text-slate-300"] {
+html.light-mode p,
+html.light-mode [class*="text-slate-200"],
+html.light-mode [class*="text-slate-300"] {
   color: #334155 !important;
 }
 
-.app-shell.light-mode [class*="text-slate-400"],
-.app-shell.light-mode [class*="text-slate-500"] {
+html.light-mode [class*="text-slate-400"],
+html.light-mode [class*="text-slate-500"] {
   color: #64748b !important;
 }
 
-.app-shell.light-mode input,
-.app-shell.light-mode select,
-.app-shell.light-mode textarea {
+html.light-mode input,
+html.light-mode select,
+html.light-mode textarea {
   background-color: #f8fafc !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
 
-.app-shell.light-mode input::placeholder,
-.app-shell.light-mode textarea::placeholder {
+html.light-mode input::placeholder,
+html.light-mode textarea::placeholder {
   color: #94a3b8 !important;
 }
 
 /* Recharts styling in Light Mode */
-.app-shell.light-mode .recharts-cartesian-axis-tick-value {
+html.light-mode .recharts-cartesian-axis-tick-value {
   fill: #64748b !important;
 }
 
-.app-shell.light-mode .recharts-default-tooltip {
+html.light-mode .recharts-default-tooltip {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
 
-.app-shell.light-mode .search-overlay {
+html.light-mode .search-overlay {
   background: rgba(15, 23, 42, 0.5) !important;
   backdrop-filter: blur(8px);
 }
 
-.app-shell.light-mode .search-modal {
+html.light-mode .search-modal {
   background: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
 }
 
-.app-shell.light-mode .outline-button {
+html.light-mode .outline-button {
   border-color: #cbd5e1 !important;
   background-color: #ffffff !important;
   color: #334155 !important;
 }
 
-.app-shell.light-mode .outline-button:hover {
+html.light-mode .outline-button:hover {
   border-color: #d97706 !important;
   background-color: #fffbeb !important;
   color: #b45309 !important;
 }
 
-.app-shell.light-mode .donut:before {
+html.light-mode .donut:before {
   background: #ffffff !important;
+}
+
+/* --- Light-mode consistency pass: hard-coded Tailwind dark utilities --- */
+
+/* Dark surfaces -> white cards (skip hover-only tokens and form controls) */
+html.light-mode [class*="bg-[#"]:not([class*="hover:"]):not(input):not(select):not(textarea),
+html.light-mode [class*="bg-slate-9"]:not([class*="hover:"]):not(input):not(select):not(textarea) {
+  background-color: #ffffff !important;
+}
+
+html.light-mode [class*="bg-slate-7"]:not([class*="hover:"]):not(input):not(select):not(textarea),
+html.light-mode [class*="bg-slate-8"]:not([class*="hover:"]):not(input):not(select):not(textarea) {
+  background-color: #e2e8f0 !important;
+}
+
+/* Hovers lighten instead of darken */
+html.light-mode [class*="hover:bg-white/"]:hover {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+html.light-mode [class*="hover:bg-slate-"]:hover,
+html.light-mode [class*="hover:bg-[#"]:hover {
+  background-color: #cbd5e1 !important;
+}
+
+html.light-mode .icon-button:not(.theme-toggle-btn):hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+/* Accent text with usable contrast on white */
+html.light-mode [class*="text-amber-3"],
+html.light-mode [class*="text-amber-4"] {
+  color: #b45309 !important;
+}
+
+html.light-mode [class*="text-amber-5"],
+html.light-mode [class*="text-amber-6"] {
+  color: #d97706 !important;
+}
+
+html.light-mode [class*="text-red-3"],
+html.light-mode [class*="text-red-4"] {
+  color: #dc2626 !important;
+}
+
+html.light-mode [class*="text-emerald-"],
+html.light-mode [class*="text-green-"] {
+  color: #047857 !important;
+}
+
+/* Accent borders */
+html.light-mode [class*="border-[#"] {
+  border-color: #e2e8f0 !important;
+}
+
+html.light-mode [class*="border-amber-"]:not([class*="focus:"]) {
+  border-color: #fcd34d !important;
+}
+
+html.light-mode [class*="border-emerald-"] {
+  border-color: #6ee7b7 !important;
+}
+
+html.light-mode [class*="border-red-"] {
+  border-color: #fecaca !important;
+}
+
+/* Status chips and soft tints */
+html.light-mode [class*="bg-amber-500/5"],
+html.light-mode [class*="bg-amber-500/30"] {
+  background-color: #fffbeb !important;
+}
+
+html.light-mode [class*="bg-emerald-500/2"] {
+  background-color: #d1fae5 !important;
+}
+
+html.light-mode [class*="bg-red-500/2"] {
+  background-color: #fee2e2 !important;
+}
+
+/* Chrome details */
+html.light-mode .close {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+html.light-mode .close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+html.light-mode .streak-widget button {
+  color: #92400e;
 }
 
 * {
@@ -447,6 +553,27 @@ button:focus-visible, input:focus-visible {
   color: #fff;
 }
 
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-2);
+  color: #fbbf24;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--faint);
+  color: #fbbf24;
+}
+
+.theme-toggle-btn span {
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .notification b {
   position: absolute;
   right: 4px;
@@ -617,4 +744,14 @@ button:focus-visible, input:focus-visible {
   .search-trigger { width: auto; flex: 1; margin-right: 12px; }
   .search-trigger span { display: none; }
   .content-wrap { padding: 20px 14px; }
+}
+
+/* Toast notifications */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.toast-item {
+  animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }

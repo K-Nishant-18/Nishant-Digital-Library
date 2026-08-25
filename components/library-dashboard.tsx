@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BookOpen, LayoutDashboard, Grid2X2, Bookmark, CalendarDays, Flame, Tags,
   TrendingUp, Users, ChevronRight, Plus, Search, Bell, Sun, Moon, ChevronDown,
@@ -16,7 +16,9 @@ import { BookEditModal } from '@/components/book-edit-modal';
 import type { Book, LibraryEntry, ReadingSession, Note, Shelf, ReadingGoal, ReadingStats } from '@/lib/types';
 import { searchExternalBooks } from '@/lib/api';
 import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';
-import { mockStats, mockBooks } from '@/lib/data';
+import { logoutAction } from '@/app/login/actions';
+import { toast, Toaster } from '@/components/toast';
+import { EMPTY_STATS } from '@/lib/empty-stats';
 
 const nav = [
   ['Dashboard', LayoutDashboard],
@@ -80,10 +82,39 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   // Selected book for currently reading detailed view
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
+  // Sync theme state with the class applied pre-paint by layout.tsx
+  useEffect(() => {
+    setDark(!document.documentElement.classList.contains('light-mode'));
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle('light-mode', !next);
+    try {
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+    } catch {}
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      } else if (e.key === 'Escape') {
+        setSearchOpen(false);
+        setModal(null);
+        setProfileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   // Real DB Data bindings with fallback
   const userProfile = data?.userProfile || { name: 'Kumar Nishant', currentStreak: 42, level: 15, avatarUrl: 'https://i.pinimg.com/1200x/ee/eb/85/eeeb85276914a88fbd7ce9b695537f95.jpg' };
-  const stats = data?.stats || mockStats;
-  const books = data?.books?.length ? data.books : mockBooks;
+  const stats = data?.stats ?? EMPTY_STATS;
+  const books = data?.books ?? [];
   const entries = data?.entries || [];
   const sessions = data?.sessions || [];
   const notes = data?.notes || [];
@@ -105,17 +136,17 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const handleAddBookToDb = async (book: Book, status: 'tbr' | 'reading' | 'read' = 'reading') => {
     const res = await addBookToLibraryAction(book, status);
     if (res.success) {
-      alert(`✨ "${book.title}" saved to your Neon PostgreSQL Library!`);
+      toast(`✨ "${book.title}" saved to your library`);
       setModal(null);
     } else {
-      alert(`Error saving book: ${res.error}`);
+      toast(`Error saving book: ${res.error}`, 'error');
     }
   };
 
   const handleSaveSessionToDb = async () => {
     const entryId = selectedEntryForSession || activeCurrentlyReadingEntry?.id;
     if (!entryId || !sessionPages) {
-      alert('Please select a book and enter the new current page number.');
+      toast('Select a book and enter the new current page number.', 'info');
       return;
     }
     const res = await logReadingSessionAction({
@@ -125,18 +156,18 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
       notes: 'Logged via Command Center',
     });
     if (res.success) {
-      alert('🔥 Reading session & streak logged to Neon PostgreSQL Database!');
+      toast('🔥 Reading session logged — streak updated!');
       setSessionPages('');
       setModal(null);
     } else {
-      alert(`Error saving session: ${res.error}`);
+      toast(`Error saving session: ${res.error}`, 'error');
     }
   };
 
   const handleSaveNoteToDb = async () => {
     const entryId = selectedEntryForNote || activeCurrentlyReadingEntry?.id;
     if (!entryId || !noteText.trim()) {
-      alert('Please select a book and enter note content.');
+      toast('Select a book and enter note content.', 'info');
       return;
     }
     const res = await addNoteAction({
@@ -146,17 +177,17 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
       page: notePage ? parseInt(notePage) : undefined,
     });
     if (res.success) {
-      alert('✍️ Note & quote saved to your Neon PostgreSQL Database!');
+      toast('✍️ Note saved to your journal');
       setNoteText('');
       setNotePage('');
       setModal(null);
     } else {
-      alert(`Error saving note: ${res.error}`);
+      toast(`Error saving note: ${res.error}`, 'error');
     }
   };
 
   return (
-    <div className={`app-shell ${dark ? '' : 'light-mode'}`}>
+    <div className="app-shell">
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="brand cursor-pointer" onClick={() => setActive('Dashboard')}>
@@ -247,11 +278,10 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
             <button
               className="icon-button theme-toggle-btn"
               aria-label="Toggle theme"
-              onClick={() => setDark(!dark)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderRadius: '6px', background: dark ? '#1e2022' : '#e2e8f0', color: dark ? '#fbbf24' : '#0f172a', border: '1px solid var(--border)' }}
+              onClick={toggleTheme}
             >
               {dark ? <Sun size={16} /> : <Moon size={16} />}
-              <span style={{ fontSize: '11px', fontWeight: 600 }}>{dark ? 'Light' : 'Dark'}</span>
+              <span>{dark ? 'Light' : 'Dark'}</span>
             </button>
 
             <button className="icon-button notification" aria-label="Notifications">
@@ -327,6 +357,15 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                       <Award size={15} className="text-amber-500" />
                       <span>Reading Goals & Badges</span>
                     </button>
+                    <form action={logoutAction} className="border-t border-white/10 pt-1">
+                      <button
+                        type="submit"
+                        className="w-full flex items-center gap-2.5 p-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-red-400 transition-colors"
+                      >
+                        <LogOut size={15} className="text-red-400" />
+                        <span>Sign Out</span>
+                      </button>
+                    </form>
                   </div>
                 </div>
               )}
@@ -360,6 +399,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
             <CurrentlyReadingView
               onLogSession={() => setModal('session')}
               onAddNote={() => setModal('note')}
+              onAddBook={() => setModal('add')}
               onEditBook={(entry) => {
                 setEditingEntry(entry);
                 setModal('edit');
@@ -683,6 +723,8 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           onSave={() => { setModal(null); setEditingEntry(null); }}
         />
       )}
+
+      <Toaster />
     </div>
   );
 }
