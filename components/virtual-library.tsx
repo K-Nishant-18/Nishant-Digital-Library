@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import {
   Grid2X2, List, LayoutGrid, Filter, Search, Plus, Star, Heart, Bookmark,
-  Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers, Sliders, Edit3
+  Sparkles, CheckCircle2, SlidersHorizontal, BookOpen, Layers, Sliders, Edit3, Upload
 } from 'lucide-react';
 import { CoverImage } from '@/components/cover-image';
+import { CsvImportModal } from '@/components/csv-import-modal';
 import type { Book, Shelf, LibraryEntry } from '@/lib/types';
 
 interface VirtualLibraryProps {
@@ -31,6 +32,7 @@ export function VirtualLibraryView({
   const [selectedShelf, setSelectedShelf] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [searchQuery, setSearchQuery] = useState('');
+  const [importOpen, setImportOpen] = useState(false);
 
   const currentShelf = shelves.find(s => s.id === selectedShelf) || shelves[0];
 
@@ -57,10 +59,21 @@ export function VirtualLibraryView({
           <p className="text-sm text-slate-400">Your digital bookshelf with customizable collections and reading views.</p>
         </div>
 
-<button className="primary flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-shadow" onClick={onAddBook}>
-  <Plus size={16} /> Add a Book
-</button>
+<div className="flex items-center gap-2">
+          <button
+            className="outline-button flex items-center gap-2 px-4 py-2 rounded-lg"
+            onClick={() => setImportOpen(true)}
+            title="Import your Goodreads or StoryGraph library"
+          >
+            <Upload size={15} /> Import CSV
+          </button>
+          <button className="primary flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-shadow" onClick={onAddBook}>
+            <Plus size={16} /> Add a Book
+          </button>
+        </div>
       </div>
+
+      {importOpen && <CsvImportModal onClose={() => setImportOpen(false)} />}
 
       {/* Shelves Pill Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/10">

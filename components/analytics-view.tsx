@@ -5,8 +5,9 @@ import {
   TrendingUp, Flame, Calendar, Award, BarChart3, PieChart, Clock, BookOpen, Star, Filter, Tags
 } from 'lucide-react';
 import { EMPTY_STATS } from '@/lib/empty-stats';
-import type { ReadingStats, ReadingGoal } from '@/lib/types';
-import { 
+import type { ReadingStats, ReadingGoal, ReadingSession } from '@/lib/types';
+import { YearHeatmap } from '@/components/year-heatmap';
+import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell
 } from 'recharts';
 
@@ -15,9 +16,10 @@ interface AnalyticsViewProps {
   onTabChange?: (tab: string) => void;
   stats?: ReadingStats;
   goal?: ReadingGoal;
+  sessions?: ReadingSession[];
 }
 
-export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbStats, goal: dbGoal }: AnalyticsViewProps) {
+export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbStats, goal: dbGoal, sessions: dbSessions = [] }: AnalyticsViewProps) {
   const [selectedYear, setSelectedYear] = useState('2026');
   const [currentTab, setCurrentTab] = useState(activeTab);
 
@@ -203,29 +205,18 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbSt
         </div>
       )}
 
-      {/* Heatmap Activity representation */}
+      {/* Year Reading Activity Heatmap */}
       {(currentTab === 'Overview' || currentTab === 'Pace & Streaks') && (
         <section className="panel space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-lg font-bold text-white">90-Day Reading Heatmap</h2>
-              <p className="text-xs text-slate-400">Consistency across past 3 months</p>
+              <h2 className="text-lg font-bold text-white">Reading Activity</h2>
+              <p className="text-xs text-slate-400">Every session from the past 12 months</p>
             </div>
             <span className="text-xs text-amber-500 font-mono">{stats.currentStreak || 0} Day Active Streak</span>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 pt-2">
-            {(stats.heatmapData || []).map((day, i) => {
-              const intensity = day.minutes === 0 ? 'bg-slate-800' : day.minutes < 30 ? 'bg-amber-900/60' : day.minutes < 45 ? 'bg-amber-600' : 'bg-amber-500';
-              return (
-                <div 
-                  key={i} 
-                  className={`w-3.5 h-3.5 rounded-sm ${intensity} transition-transform hover:scale-125 cursor-pointer`}
-                  title={`${day.date}: ${day.minutes} minutes`}
-                />
-              );
-            })}
-          </div>
+          <YearHeatmap sessions={dbSessions} />
         </section>
       )}
     </div>

@@ -18,10 +18,11 @@ import { BarcodeScanner } from '@/components/barcode-scanner';
 import { CoverImage } from '@/components/cover-image';
 import type { Book, LibraryEntry, ReadingSession, Note, Shelf, ReadingGoal, ReadingStats } from '@/lib/types';
 import { searchExternalBooks } from '@/lib/api';
-import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';
-import { logoutAction } from '@/app/login/actions';
+import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';import { logoutAction } from '@/app/login/actions';
 import { toast, Toaster } from '@/components/toast';
 import { EMPTY_STATS } from '@/lib/empty-stats';
+import { FinishBookModal } from '@/components/finish-book-modal';
+import { searchNotesAction } from '@/lib/actions';
 
 const nav = [
   ['Dashboard', LayoutDashboard],
@@ -59,6 +60,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const [dark, setDark] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [noteResults, setNoteResults] = useState<{ id: string; text: string; type: string; page?: number; bookTitle: string }[]>([]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -85,6 +87,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
 
   // Selected book for currently reading detailed view
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [finishingEntry, setFinishingEntry] = useState<LibraryEntry | null>(null);
 
   // Sync theme state with the class applied pre-paint by layout.tsx
   useEffect(() => {
@@ -114,6 +117,20 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  // Server-side note search for the quick search overlay (debounced)
+  useEffect(() => {
+    if (!searchOpen || searchQuery.trim().length < 2) {
+      setNoteResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      const res = await searchNotesAction(searchQuery.trim());
+      if (res.success) setNoteResults(res.notes);
+      else setNoteResults([]);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery, searchOpen]);
 
   // Real DB Data bindings with fallback
   const userProfile = data?.userProfile || { name: 'Kumar Nishant', currentStreak: 42, level: 15, avatarUrl: 'https://i.pinimg.com/1200x/ee/eb/85/eeeb85276914a88fbd7ce9b695537f95.jpg' };
@@ -418,6 +435,10 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               onLogSession={() => setModal('session')}
               onAddNote={(entryId) => openAddNote(entryId)}
               onAddBook={() => setModal('add')}
+              onFinishBook={() => {
+                const e = selectedBook ? entries.find(e => e.bookId === selectedBook.id) : activeCurrentlyReadingEntry;
+                if (e) setFinishingEntry(e);
+              }}
               onEditBook={(entry) => {
                 setEditingEntry(entry);
                 setModal('edit');
@@ -482,6 +503,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               onTabChange={(tab) => setActive(tab)}
               stats={stats}
               goal={goal}
+              sessions={sessions}
             />
           )}
 
@@ -536,6 +558,29 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                     </div>
                   </button>
                 ))}
+
+              {noteResults.length > 0 && (
+                <>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 pt-2 px-1">Matching Notes</p>
+                  {noteResults.map(n => (
+                    <button
+                      key={n.id}
+                      className="w-full flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-left transition-colors"
+                      onClick={() => { setSearchOpen(false); setSearchQuery(''); setActive('Notes & Quotes'); }}
+                    >
+                      <span className={`shrink-0 mt-0.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                        n.type === 'quote' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {n.type}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-xs text-slate-200 truncate">&ldquo;{n.text}&rdquo;</span>
+                        <span className="block text-[10px] text-slate-500">{n.bookTitle}{n.page ? ` · p.${n.page}` : ''}</span>
+                      </span>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -745,6 +790,15 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Finish Book Modal */}
+      {finishingEntry && (
+        <FinishBookModal
+          entry={finishingEntry}
+          sessions={sessions}
+          onClose={() => setFinishingEntry(null)}
+        />
       )}
 
       {/* Edit Book Modal */}

@@ -528,6 +528,36 @@ export async function addNoteAction({
   }
 }
 
+export async function searchNotesAction(query: string) {
+  try {
+    await assertAuth();
+    const q = query.trim();
+    if (q.length < 2) return { success: true as const, notes: [] };
+
+    const rows = await prisma.note.findMany({
+      where: { text: { contains: q, mode: 'insensitive' } },
+      include: { libraryEntry: { include: { book: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+    });
+
+    return {
+      success: true as const,
+      notes: rows.map(r => ({
+        id: r.id,
+        text: r.text,
+        type: r.type as string,
+        page: r.page ?? undefined,
+        createdAt: r.createdAt,
+        bookTitle: r.libraryEntry?.book?.title || 'Unknown book',
+      })),
+    };
+  } catch (error: any) {
+    console.error('[searchNotesAction] Error:', error);
+    return { success: false as const, error: error.message, notes: [] };
+  }
+}
+
 export async function deleteNoteAction(noteId: string) {
   try {
     await assertAuth();

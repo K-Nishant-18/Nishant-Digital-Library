@@ -14,6 +14,7 @@ interface CurrentlyReadingProps {
   onAddNote: (entryId?: string) => void;
   onAddBook?: () => void;
   onEditBook?: (entry: LibraryEntry) => void;
+  onFinishBook?: () => void;
   entry?: LibraryEntry;
   sessions?: ReadingSession[];
   notes?: Note[];
@@ -25,6 +26,7 @@ export function CurrentlyReadingView({
   onAddNote,
   onAddBook,
   onEditBook,
+  onFinishBook,
   entry,
   sessions: dbSessions,
   notes: dbNotes,
@@ -58,6 +60,14 @@ export function CurrentlyReadingView({
 
   const totalMinutes = sessions.reduce((acc, s) => acc + (s.minutes || 0), 0);
   const avgPages = sessions.length ? Math.round(activeEntry.currentPage / sessions.length) : 20;
+
+  // Projection: pace from logged sessions (pages/day across distinct reading days)
+  const loggedPages = sessions.reduce((acc, s) => acc + Math.max(0, (s.pageEnd ?? s.pageStart) - s.pageStart), 0);
+  const distinctDays = new Set(sessions.map(s => new Date(s.startedAt).toDateString())).size;
+  const pagesPerDay = distinctDays > 0 ? loggedPages / distinctDays : 0;
+  const remainingPages = Math.max(0, (book?.pageCount || activeEntry.currentPage) - activeEntry.currentPage);
+  const daysToFinish = pagesPerDay > 0 ? Math.ceil(remainingPages / pagesPerDay) : null;
+  const projectedFinish = daysToFinish !== null ? new Date(Date.now() + daysToFinish * 86_400_000) : null;
 
   return (
     <div className="space-y-6">
@@ -111,6 +121,18 @@ export function CurrentlyReadingView({
               <div className="progress">
                 <span style={{ width: `${activeEntry.progressPercent}%` }} />
               </div>
+              {activeEntry.status === 'reading' && remainingPages > 0 && (
+                <p className="text-[11px] text-amber-500 font-medium pt-0.5">
+                  {projectedFinish ? (
+                    <>On track to finish by <span className="font-bold">{format(projectedFinish, 'MMM d')}</span></>
+                  ) : (
+                    <>{remainingPages} pages left</>
+                  )}
+                  {pagesPerDay > 0 && (
+                    <span className="text-[var(--muted)]"> · ~{Math.round(pagesPerDay)} pages/day</span>
+                  )}
+                </p>
+              )}
             </div>
 
             {/* Action buttons */}
@@ -121,6 +143,11 @@ export function CurrentlyReadingView({
               <button className="outline-button" onClick={() => onAddNote(activeEntry.id)}>
                 <Edit3 size={16} /> Add Note / Quote
               </button>
+              {activeEntry.status === 'reading' && onFinishBook && (
+                <button className="outline-button !border-emerald-500/40 !text-emerald-400 hover:!border-emerald-400" onClick={onFinishBook}>
+                  <CheckCircle2 size={16} /> Mark as Finished
+                </button>
+              )}
               {onEditBook && activeEntry && (
                 <button className="outline-button" onClick={() => onEditBook(activeEntry)}>
                   <Sliders size={16} /> Edit Book
