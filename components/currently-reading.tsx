@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 
 interface CurrentlyReadingProps {
   onLogSession: () => void;
-  onAddNote: () => void;
+  onAddNote: (entryId?: string) => void;
   onAddBook?: () => void;
   onEditBook?: (entry: LibraryEntry) => void;
   entry?: LibraryEntry;
@@ -115,7 +115,7 @@ export function CurrentlyReadingView({
               <button className="primary" onClick={onLogSession}>
                 <Plus size={16} /> Log Pages Read
               </button>
-              <button className="outline-button" onClick={onAddNote}>
+              <button className="outline-button" onClick={() => onAddNote(activeEntry.id)}>
                 <Edit3 size={16} /> Add Note / Quote
               </button>
               {onEditBook && activeEntry && (
@@ -262,7 +262,7 @@ export function CurrentlyReadingView({
         <section className="panel space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Notes & Highlights</h2>
-            <button className="primary" onClick={onAddNote}><Plus size={16} /> Add Note</button>
+            <button className="primary" onClick={() => onAddNote(activeEntry.id)}><Plus size={16} /> Add Note</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {notes.length > 0 ? (

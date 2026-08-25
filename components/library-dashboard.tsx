@@ -164,6 +164,11 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
     }
   };
 
+  const openAddNote = (entryId?: string) => {
+    setSelectedEntryForNote(entryId || '');
+    setModal('note');
+  };
+
   const handleSaveNoteToDb = async () => {
     const entryId = selectedEntryForNote || activeCurrentlyReadingEntry?.id;
     if (!entryId || !noteText.trim()) {
@@ -380,7 +385,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               setActive={setActive}
               onAddBook={() => setModal('add')}
               onLogSession={() => setModal('session')}
-              onAddNote={() => setModal('note')}
+              onAddNote={() => openAddNote()}
               onEditBook={(entry) => {
                 setEditingEntry(entry);
                 setModal('edit');
@@ -398,7 +403,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           {active === 'Currently Reading' && (
             <CurrentlyReadingView
               onLogSession={() => setModal('session')}
-              onAddNote={() => setModal('note')}
+              onAddNote={(entryId) => openAddNote(entryId)}
               onAddBook={() => setModal('add')}
               onEditBook={(entry) => {
                 setEditingEntry(entry);
@@ -470,9 +475,9 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           {journal.includes(active) && (
             <NotesJournalView
               activeTab={active}
-              onAddNote={() => setModal('note')}
+              onAddNote={() => openAddNote()}
               notes={notes}
-              books={books}
+              entries={entries}
             />
           )}
 

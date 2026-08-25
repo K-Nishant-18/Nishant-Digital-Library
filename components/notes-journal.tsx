@@ -5,7 +5,7 @@ import {
   Bookmark, Search, Plus, Tag, Heart, MessageSquare, Quote, Highlighter as Highlight,
   ChevronRight, Filter, BookOpen, Share2, Copy, Check
 } from 'lucide-react';
-import type { Note, Book } from '@/lib/types';
+import type { Note, Book, LibraryEntry } from '@/lib/types';
 import { toast } from '@/components/toast';
 import { format } from 'date-fns';
 
@@ -13,14 +13,14 @@ interface NotesJournalProps {
   onAddNote: () => void;
   activeTab?: string;
   notes?: Note[];
-  books?: Book[];
+  entries?: LibraryEntry[];
 }
 
 export function NotesJournalView({
   onAddNote,
   activeTab = 'Notes & Quotes',
   notes = [],
-  books = [],
+  entries = [],
 }: NotesJournalProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -109,7 +109,7 @@ export function NotesJournalView({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {filteredNotes.map(note => {
-                const book = books.find(b => b.id === note.libraryEntryId) || books[0];
+                const book = entries.find(e => e.id === note.libraryEntryId)?.book;
                 return (
                   <div key={note.id} className="panel space-y-3 relative group hover:border-amber-500/30 transition-all p-4 rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/80 to-slate-950/80 shadow-md">
                     <div className="flex items-center justify-between text-xs">
@@ -139,7 +139,7 @@ export function NotesJournalView({
                     <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
                       <div className="flex items-center gap-2">
                         <BookOpen size={13} className="text-amber-500" />
-                        <span className="font-medium text-slate-300 truncate max-w-[160px]">{book?.title || 'My Library Book'}</span>
+                        <span className="font-medium text-slate-300 truncate max-w-[160px]">{book?.title || 'Unknown book'}</span>
                       </div>
 
                       <div className="flex flex-wrap gap-1">
