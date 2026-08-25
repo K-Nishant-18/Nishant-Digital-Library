@@ -5,7 +5,7 @@
  *  - other same-origin GETs:    stale-while-revalidate
  *  - POST/server actions:       never intercepted (must hit network)
  */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE_NAME = `my-library-${VERSION}`;
 const PRECACHE = ['/', '/manifest.json', '/my-logo.png'];
 

@@ -107,7 +107,7 @@ export function ProfileView({ userProfile, stats: dbStats }: ProfileViewProps) {
                 <span className="flex items-center gap-1"><Calendar size={13} className="text-amber-500" /> Joined January 2024</span>
               <span className="flex items-center gap-1"><Flame size={13} className="text-amber-500" /> {stats.currentStreak} Day Streak</span>
               <span className="flex items-center gap-1"><BookOpen size={13} className="text-amber-500" /> {stats.booksThisYear} Books Read</span>
-              <span className="flex items-center gap-1"><Bookmark size={13} className="text-amber-500" /> {stats.pagesThisYear.toLocaleString()} Pages</span>
+              <span className="flex items-center gap-1"><Bookmark size={13} className="text-amber-500" /> {stats.pagesThisYear.toLocaleString('en-US')} Pages</span>
               <span className="flex items-center gap-1"><Star size={13} className="text-amber-500" /> {stats.averageRating.toFixed(1)} Avg Rating</span>
               </div>
             </div>
@@ -132,7 +132,7 @@ export function ProfileView({ userProfile, stats: dbStats }: ProfileViewProps) {
             <span className="text-slate-300 flex items-center gap-1.5">
               <Sparkles size={14} className="text-amber-400" /> XP Progress to Level {(userProfile?.level || 15) + 1}
             </span>
-            <span className="text-amber-400 font-mono">{levelXpCurrent.toLocaleString()} / {levelXpNext.toLocaleString()} XP ({xpPercent}%)</span>
+            <span className="text-amber-400 font-mono">{levelXpCurrent.toLocaleString('en-US')} / {levelXpNext.toLocaleString('en-US')} XP ({xpPercent}%)</span>
           </div>
           <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-white/5">
             <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-500" style={{ width: `${xpPercent}%` }} />

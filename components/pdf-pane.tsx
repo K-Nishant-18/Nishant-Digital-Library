@@ -18,12 +18,17 @@ interface PdfPaneProps {
   onNumPages: (numPages: number) => void;
   annotations: ReaderAnnotation[];
   onSelection: (selection: PdfSelection | null) => void;
+  /** Kindle-style screen-edge taps: 'prev' | 'next' | 'center' */
+  onTap?: (zone: 'prev' | 'next' | 'center') => void;
+  registerApi?: (api: { zoomIn(): void; zoomOut(): void } | null) => void;
 }
 
 // US Letter width in pt; used for initial fit-width calculation
 const BASE_PAGE_WIDTH = 612;
 
-export function PdfPane({ data, page, onPageChange, onNumPages, annotations, onSelection }: PdfPaneProps) {
+export function PdfPane({
+  data, page, onPageChange, onNumPages, annotations, onSelection, onTap, registerApi,
+}: PdfPaneProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [scale, setScale] = useState(1);
   const [autoFit, setAutoFit] = useState(true);
@@ -43,6 +48,16 @@ export function PdfPane({ data, page, onPageChange, onNumPages, annotations, onS
     ro.observe(el);
     return () => ro.disconnect();
   }, [autoFit]);
+
+  // Expose zoom controls to the settings panel
+  useEffect(() => {
+    if (!registerApi) return;
+    registerApi({
+      zoomIn: () => { setAutoFit(false); setScale(s => Math.min(3, +(s + 0.15).toFixed(2))); },
+      zoomOut: () => { setAutoFit(false); setScale(s => Math.max(0.4, +(s - 0.15).toFixed(2))); },
+    });
+    return () => registerApi(null);
+  }, [registerApi]);
 
   // Clear any pending selection when turning pages
   useEffect(() => {
@@ -83,14 +98,31 @@ export function PdfPane({ data, page, onPageChange, onNumPages, annotations, onS
     if (rects.length > 0) onSelection({ text, page, rects });
   }, [onSelection]);
 
+  // Kindle-style edge taps (ignored while a selection is active)
+  const handleTap = useCallback((e: React.MouseEvent) => {
+    if (!onTap) return;
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, input')) return;
+
+    const rect = scrollRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    if (x < rect.width * 0.3) onTap('prev');
+    else if (x > rect.width * 0.7) onTap('next');
+    else onTap('center');
+  }, [onTap]);
+
   const pageAnnotations = annotations.filter(a => a.page === page);
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="h-full min-h-0">
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-auto flex justify-center py-4 px-4"
+        className="h-full overflow-auto flex justify-center py-4 px-4"
         onMouseUp={captureSelection}
+        onClick={handleTap}
       >
         <Document
           file={{ data }}
@@ -117,7 +149,6 @@ export function PdfPane({ data, page, onPageChange, onNumPages, annotations, onS
                     width: `${r.pctW * 100}%`,
                     height: `${r.pctH * 100}%`,
                     backgroundColor: a.kind === 'note' ? 'rgba(59,130,246,0.35)' : 'rgba(245,158,11,0.35)',
-                    mixBlendMode: 'multiply',
                   }}
                   title={a.note || a.text}
                 />
@@ -126,51 +157,6 @@ export function PdfPane({ data, page, onPageChange, onNumPages, annotations, onS
           </div>
         </Document>
       </div>
-
-      {/* Zoom controls */}
-      <div className="absolute bottom-20 right-6 flex items-center gap-1 bg-black/70 backdrop-blur rounded-lg border border-white/10 p-1 z-10">
-        <button
-          className="w-7 h-7 rounded text-slate-300 hover:bg-white/10 text-sm"
-          onClick={() => { setAutoFit(false); setScale(s => Math.max(0.4, +(s - 0.15).toFixed(2))); }}
-        >
-          −
-        </button>
-        <span className="text-[10px] text-slate-400 font-mono w-9 text-center">{Math.round(scale * 100)}%</span>
-        <button
-          className="w-7 h-7 rounded text-slate-300 hover:bg-white/10 text-sm"
-          onClick={() => { setAutoFit(false); setScale(s => Math.min(3, +(s + 0.15).toFixed(2))); }}
-        >
-          +
-        </button>
-        {!autoFit && (
-          <button
-            className="px-2 h-7 rounded text-[10px] text-amber-400 hover:bg-white/10"
-            onClick={() => setAutoFit(true)}
-          >
-            Fit
-          </button>
-        )}
-      </div>
-
-      {numPages > 0 && (
-        <div className="shrink-0 h-9 flex items-center justify-center gap-3 border-t border-white/10 bg-[#141618] text-xs text-slate-400">
-          <button
-            className="px-3 py-1 rounded-md hover:bg-white/10 disabled:opacity-30"
-            disabled={page <= 1}
-            onClick={() => onPageChange(page - 1)}
-          >
-            ← Prev
-          </button>
-          <span className="font-mono">Page {page} / {numPages}</span>
-          <button
-            className="px-3 py-1 rounded-md hover:bg-white/10 disabled:opacity-30"
-            disabled={page >= numPages}
-            onClick={() => onPageChange(page + 1)}
-          >
-            Next →
-          </button>
-        </div>
-      )}
     </div>
   );
 }

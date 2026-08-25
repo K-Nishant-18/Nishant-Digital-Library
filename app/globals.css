@@ -755,3 +755,43 @@ button:focus-visible, input:focus-visible {
 .toast-item {
   animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Reader location slider (dark chrome) */
+.reader-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  cursor: pointer;
+}
+
+.reader-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--amber);
+  border: 2px solid #101112;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease;
+}
+
+.reader-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.reader-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--amber);
+  border: 2px solid #101112;
+}
+
+.reader-slider:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -104,7 +104,7 @@ export function AnalyticsView({ activeTab = 'Overview', onTabChange, stats: dbSt
 
             <div className="space-y-1">
               <span className="text-xs text-slate-400 font-medium">Total Pages Read</span>
-              <div className="text-xl font-bold text-white font-mono">{(stats.pagesThisYear || 0).toLocaleString()}</div>
+              <div className="text-xl font-bold text-white font-mono">{(stats.pagesThisYear || 0).toLocaleString('en-US')}</div>
               <span className="text-[11px] text-slate-500">Avg {stats.averagePagesPerDay || 0} pages / day</span>
             </div>
 

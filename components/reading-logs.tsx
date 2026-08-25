@@ -75,7 +75,7 @@ export function ReadingLogsView({
         </div>
         <div className="stat-card">
           <span className="text-xs uppercase font-semibold" style={{ color: 'var(--muted)' }}>Pages Logged</span>
-          <div className="text-3xl font-bold font-mono tracking-tight">{totalPages.toLocaleString()}</div>
+          <div className="text-3xl font-bold font-mono tracking-tight">{totalPages.toLocaleString('en-US')}</div>
           <p className="text-[11px] text-amber-500">Avg {Math.round(totalPages / (safeSessions.length || 1))} pages/session</p>
         </div>
       </div>

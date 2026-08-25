@@ -25,6 +25,7 @@ const BookReaderModal = dynamic(
   { ssr: false }
 );
 import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';import { logoutAction } from '@/app/login/actions';
+import { format } from 'date-fns';
 import { toast, Toaster } from '@/components/toast';
 import { EMPTY_STATS } from '@/lib/empty-stats';
 import { FinishBookModal } from '@/components/finish-book-modal';
@@ -916,7 +917,7 @@ function DashboardView({
             <span>Pages This Year</span>
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-bold text-white tracking-tight">{stats.pagesThisYear.toLocaleString()} <span className="text-xs font-normal text-slate-400">pages</span></div>
+            <div className="text-2xl font-bold text-white tracking-tight">{stats.pagesThisYear.toLocaleString('en-US')} <span className="text-xs font-normal text-slate-400">pages</span></div>
             <p className="text-[11px] text-slate-400 mt-0.5">Avg {stats.averagePagesPerDay} pages / day</p>
           </div>
         </div>
@@ -997,7 +998,7 @@ function DashboardView({
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <h4 className="text-sm font-semibold text-white">{b.title}</h4>
-                          <span className="text-[10px] text-slate-500 font-mono">{new Date(s.startedAt).toLocaleDateString()}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">{format(new Date(s.startedAt), 'd MMM yyyy')}</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">Session: {s.minutes || 30} mins (p. {s.pageStart}-{s.pageEnd})</p>
                         {s.notes && (
