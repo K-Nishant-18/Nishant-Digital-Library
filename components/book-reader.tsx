@@ -20,6 +20,7 @@ import {
 } from '@/lib/actions';
 import type { LibraryEntry, ReaderAnnotation } from '@/lib/types';
 import type { PdfSelection } from '@/components/pdf-pane';
+import { bindSwipe, isCoarsePointer } from '@/components/gestures';
 
 const PdfPane = dynamic(() => import('@/components/pdf-pane').then(m => m.PdfPane), {
   ssr: false,
@@ -837,19 +838,37 @@ function EpubPane({
     });
     renditionRef.current = rendition;
 
-    // Kindle-style tap zones: left third = back, right third = forward, center = toggle chrome
+    // Kindle-style input: desktop = click thirds; touch = swipe to turn,
+    // tap center for chrome, native long-press selects text
+    const contentCleanups: Array<() => void> = [];
+
     rendition.hooks.content.register((contents: any) => {
       const doc: Document = contents.document;
-      const handler = (ev: MouseEvent) => {
-        const sel = doc.getSelection?.();
-        if (sel && !sel.isCollapsed) return;
-        const rect = container.getBoundingClientRect();
-        const x = ev.clientX - rect.left;
-        if (x < rect.width * 0.3) rendition.prev();
-        else if (x > rect.width * 0.7) rendition.next();
-        else onTapCenter();
+      const selCollapsed = () => {
+        const s = doc.getSelection?.() ?? doc.defaultView?.getSelection?.();
+        return !s || s.isCollapsed;
       };
-      doc.addEventListener('click', handler);
+
+      if (isCoarsePointer()) {
+        const target = (doc.body ?? doc.documentElement) as HTMLElement;
+        contentCleanups.push(
+          bindSwipe(target, {
+            onSwipe: dir => (dir === 'next' ? rendition.next() : rendition.prev()),
+            onTap: () => { if (selCollapsed()) onTapCenter(); },
+          }, selCollapsed)
+        );
+      } else {
+        const handler = (ev: MouseEvent) => {
+          if (!selCollapsed()) return;
+          const rect = container.getBoundingClientRect();
+          const x = ev.clientX - rect.left;
+          if (x < rect.width * 0.3) rendition.prev();
+          else if (x > rect.width * 0.7) rendition.next();
+          else onTapCenter();
+        };
+        doc.addEventListener('click', handler);
+        contentCleanups.push(() => doc.removeEventListener('click', handler));
+      }
     });
 
     const emitRelocated = (loc: any) => {
@@ -931,6 +950,7 @@ function EpubPane({
     return () => {
       destroyed = true;
       registerApi(null);
+      contentCleanups.forEach(fn => fn());
       try { rendition.destroy(); } catch {}
       try { book.destroy(); } catch {}
     };

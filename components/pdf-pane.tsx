@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import type { ReaderAnnotation } from '@/lib/types';
+import { bindSwipe, isCoarsePointer } from '@/components/gestures';
 
 export interface PdfSelection {
   text: string;
@@ -98,9 +99,9 @@ export function PdfPane({
     if (rects.length > 0) onSelection({ text, page, rects });
   }, [onSelection]);
 
-  // Kindle-style edge taps (ignored while a selection is active)
+  // Kindle-style edge taps (desktop only; touch uses swipe gestures instead)
   const handleTap = useCallback((e: React.MouseEvent) => {
-    if (!onTap) return;
+    if (!onTap || isCoarsePointer()) return;
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed) return;
     const target = e.target as HTMLElement;
@@ -112,6 +113,20 @@ export function PdfPane({
     if (x < rect.width * 0.3) onTap('prev');
     else if (x > rect.width * 0.7) onTap('next');
     else onTap('center');
+  }, [onTap]);
+
+  // Touch: swipe turns pages, quick tap toggles chrome, long-press selects text
+  useEffect(() => {
+    if (!onTap || !scrollRef.current) return;
+    if (!isCoarsePointer()) return;
+    const el = scrollRef.current;
+    return bindSwipe(el, {
+      onSwipe: dir => onTap(dir),
+      onTap: () => onTap('center'),
+    }, () => {
+      const s = window.getSelection();
+      return !s || s.isCollapsed;
+    });
   }, [onTap]);
 
   const pageAnnotations = annotations.filter(a => a.page === page);

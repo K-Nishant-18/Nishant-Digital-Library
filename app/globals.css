@@ -738,7 +738,7 @@ button:focus-visible, input:focus-visible {
   .content-wrap { padding: 25px; }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 767px) {
   .sidebar { display: none; }
   .topbar { padding: 0 16px; }
   .search-trigger { width: auto; flex: 1; margin-right: 12px; }
@@ -754,6 +754,21 @@ button:focus-visible, input:focus-visible {
 
 .toast-item {
   animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mobile drawer */
+.mobile-drawer {
+  background: #101112;
+  border-right: 1px solid #222527;
+}
+
+.drawer-in {
+  animation: drawer-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
 }
 
 /* Reader location slider (dark chrome) */

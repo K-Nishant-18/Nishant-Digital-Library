@@ -299,6 +299,72 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
         </div>
       </aside>
 
+      {/* Mobile Command Center drawer */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60]" role="dialog" aria-label="Command Center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div className="mobile-drawer drawer-in absolute left-0 top-0 bottom-0 w-72 max-w-[84vw] overflow-y-auto p-5 flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Image src="/my-logo-1.png" alt="" width={28} height={28} className="w-7 h-7 rounded-lg object-cover" />
+                <span className="font-bold text-[15px] tracking-tight">My Library</span>
+              </div>
+              <button className="icon-button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
+                <X size={18} />
+              </button>
+            </div>
+
+            <nav className="nav-group">
+              <div className="nav-label">Command Center</div>
+              {nav.map(([name, Icon]) => (
+                <button
+                  key={name}
+                  className={`nav-item ${active === name ? 'active' : ''}`}
+                  onClick={() => { setActive(name); setMobileMenuOpen(false); }}
+                >
+                  <Icon size={17} />
+                  <span>{name}</span>
+                  {name === 'TBR Queue' && <span className="nav-count">{tbrEntries.length}</span>}
+                </button>
+              ))}
+            </nav>
+
+            <nav className="nav-group">
+              <div className="nav-label">Analytics</div>
+              {analytics.map(([name, Icon]) => (
+                <button
+                  key={name}
+                  className={`nav-item ${active === name ? 'active' : ''}`}
+                  onClick={() => { setActive(name); setMobileMenuOpen(false); }}
+                >
+                  <Icon size={17} />
+                  <span>{name}</span>
+                </button>
+              ))}
+            </nav>
+
+            <nav className="nav-group">
+              <div className="nav-label">Journal</div>
+              {journal.map(name => (
+                <button
+                  key={name}
+                  className={`nav-item ${active === name ? 'active' : ''}`}
+                  onClick={() => { setActive(name); setMobileMenuOpen(false); }}
+                >
+                  <Bookmark size={17} />
+                  <span>{name}</span>
+                </button>
+              ))}
+            </nav>
+
+            <div className="streak-widget mt-auto">
+              <div className="streak-top"><Flame size={19} /><span>Keep going, Reader!</span></div>
+              <strong>{stats.currentStreak} day streak</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Area */}
       <main className="main-area">
         {/* Topbar */}
