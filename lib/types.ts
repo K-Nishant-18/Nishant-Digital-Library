@@ -45,6 +45,8 @@ export interface LibraryEntry {
   progressPercent: number;
   createdAt: Date;
   updatedAt: Date;
+  hasReaderFile?: boolean;
+  readerFormat?: 'epub' | 'pdf';
 }
 
 export interface ReadingSession {
@@ -80,6 +82,16 @@ export interface Chapter {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ReaderAnnotation {
+  id: string;
+  kind: 'highlight' | 'note';
+  text: string;
+  note?: string;
+  cfi?: string;
+  page?: number;
+  rects?: { pctX: number; pctY: number; pctW: number; pctH: number }[];
 }
 
 export interface Note {

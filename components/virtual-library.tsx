@@ -13,6 +13,7 @@ interface VirtualLibraryProps {
   onSelectBook: (book: Book) => void;
   onAddBook: () => void;
   onEditBook?: (entry: LibraryEntry) => void;
+  onOpenReader?: (entry: LibraryEntry) => void;
   initialStatus?: string;
   books?: Book[];
   entries?: LibraryEntry[];
@@ -23,6 +24,7 @@ export function VirtualLibraryView({
   onSelectBook,
   onAddBook,
   onEditBook,
+  onOpenReader,
   initialStatus = 'all',
   books = [],
   entries = [],
@@ -179,6 +181,18 @@ export function VirtualLibraryView({
                       <span className="absolute top-2 left-2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow">
                         {entry.progressPercent}%
                       </span>
+                    )}
+                    {onOpenReader && entry && (
+                      <button
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur hover:bg-amber-500 hover:text-black text-white text-[11px] font-bold transition-all opacity-0 group-hover:opacity-100 shadow"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenReader(entry);
+                        }}
+                        title={entry.hasReaderFile ? 'Open in reader' : 'Upload EPUB/PDF to read here'}
+                      >
+                        <BookOpen size={12} /> {entry.hasReaderFile ? 'Read' : 'Read / Upload'}
+                      </button>
                     )}
                     {onEditBook && entry && (
                       <button

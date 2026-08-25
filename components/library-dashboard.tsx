@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import {
   BookOpen, LayoutDashboard, Grid2X2, Bookmark, CalendarDays, Flame, Tags,
@@ -18,6 +19,11 @@ import { BarcodeScanner } from '@/components/barcode-scanner';
 import { CoverImage } from '@/components/cover-image';
 import type { Book, LibraryEntry, ReadingSession, Note, Shelf, ReadingGoal, ReadingStats } from '@/lib/types';
 import { searchExternalBooks } from '@/lib/api';
+
+const BookReaderModal = dynamic(
+  () => import('@/components/book-reader').then(m => m.BookReaderModal),
+  { ssr: false }
+);
 import { addBookToLibraryAction, logReadingSessionAction, addNoteAction } from '@/lib/actions';import { logoutAction } from '@/app/login/actions';
 import { toast, Toaster } from '@/components/toast';
 import { EMPTY_STATS } from '@/lib/empty-stats';
@@ -88,6 +94,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   // Selected book for currently reading detailed view
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [finishingEntry, setFinishingEntry] = useState<LibraryEntry | null>(null);
+  const [readerEntry, setReaderEntry] = useState<LibraryEntry | null>(null);
 
   // Sync theme state with the class applied pre-paint by layout.tsx
   useEffect(() => {
@@ -439,6 +446,10 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 const e = selectedBook ? entries.find(e => e.bookId === selectedBook.id) : activeCurrentlyReadingEntry;
                 if (e) setFinishingEntry(e);
               }}
+              onOpenReader={() => {
+                const e = selectedBook ? entries.find(e => e.bookId === selectedBook.id) : activeCurrentlyReadingEntry;
+                if (e) setReaderEntry(e);
+              }}
               onEditBook={(entry) => {
                 setEditingEntry(entry);
                 setModal('edit');
@@ -453,6 +464,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           {active === 'Virtual Library' && (
             <VirtualLibraryView
               initialStatus="all"
+              onOpenReader={(e) => setReaderEntry(e)}
               onSelectBook={(book) => {
                 const entry = entries.find(e => e.bookId === book.id);
                 setSelectedBook(book);
@@ -472,6 +484,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
           {active === 'TBR Queue' && (
             <VirtualLibraryView
               initialStatus="tbr"
+              onOpenReader={(e) => setReaderEntry(e)}
               onSelectBook={(book) => {
                 const entry = entries.find(e => e.bookId === book.id);
                 setSelectedBook(book);
@@ -790,6 +803,14 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* In-app Book Reader */}
+      {readerEntry && (
+        <BookReaderModal
+          entry={readerEntry}
+          onClose={() => setReaderEntry(null)}
+        />
       )}
 
       {/* Finish Book Modal */}

@@ -15,6 +15,7 @@ interface CurrentlyReadingProps {
   onAddBook?: () => void;
   onEditBook?: (entry: LibraryEntry) => void;
   onFinishBook?: () => void;
+  onOpenReader?: () => void;
   entry?: LibraryEntry;
   sessions?: ReadingSession[];
   notes?: Note[];
@@ -27,6 +28,7 @@ export function CurrentlyReadingView({
   onAddBook,
   onEditBook,
   onFinishBook,
+  onOpenReader,
   entry,
   sessions: dbSessions,
   notes: dbNotes,
@@ -137,7 +139,16 @@ export function CurrentlyReadingView({
 
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button className="primary" onClick={onLogSession}>
+              {onOpenReader && (
+                <button
+                  className={activeEntry.hasReaderFile ? 'primary' : 'outline-button'}
+                  onClick={onOpenReader}
+                  title={activeEntry.hasReaderFile ? 'Open this book in the reader' : 'Upload an EPUB/PDF to read here'}
+                >
+                  <BookOpen size={16} /> {activeEntry.hasReaderFile ? 'Read Now' : 'Read (upload file)'}
+                </button>
+              )}
+              <button className="outline-button" onClick={onLogSession}>
                 <Plus size={16} /> Log Pages Read
               </button>
               <button className="outline-button" onClick={() => onAddNote(activeEntry.id)}>

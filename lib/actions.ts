@@ -221,6 +221,17 @@ export async function getLibraryData() {
     const entries: LibraryEntry[] = rawEntries.map(formatEntry);
     const books: Book[] = entries.map(e => e.book!).filter(Boolean);
 
+    // Flag which entries have an EPUB/PDF uploaded for the in-app reader
+    const readerFiles = await prisma.bookFile.findMany({ select: { libraryEntryId: true, format: true } });
+    const fileFormats = new Map(readerFiles.map(f => [f.libraryEntryId, f.format]));
+    for (const entry of entries) {
+      const fmt = fileFormats.get(entry.id);
+      if (fmt) {
+        entry.hasReaderFile = true;
+        entry.readerFormat = fmt as 'epub' | 'pdf';
+      }
+    }
+
     const sessions: ReadingSession[] = rawEntries.flatMap(e =>
       e.sessions.map(s => ({
         id: s.id, libraryEntryId: s.libraryEntryId, startedAt: s.startedAt,
@@ -385,6 +396,317 @@ export async function updateBookAction(bookId: string, bookData: Partial<Book>) 
   } catch (error: any) {
     console.error('[updateBookAction] Error:', error);
     return { success: false, error: error.message };
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// READER: file upload, progress, highlights
+// ──────────────────────────────────────────────────────────────────────────────
+
+const MAX_READER_FILE_BYTES = 30 * 1024 * 1024; // 30MB
+
+export async function uploadReaderFileAction(entryId: string, formData: FormData) {
+  try {
+    await assertAuth();
+    const file = formData.get('file') as File | null;
+    if (!file) return { success: false, error: 'No file provided' };
+    if (file.size > MAX_READER_FILE_BYTES) {
+      return { success: false, error: 'File too large (max 30MB)' };
+    }
+
+    const name = file.name.toLowerCase();
+    const format = name.endsWith('.epub') ? 'epub' : name.endsWith('.pdf') ? 'pdf' : null;
+    if (!format) return { success: false, error: 'Only .epub or .pdf files are supported' };
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    await prisma.bookFile.upsert({
+      where: { libraryEntryId: entryId },
+      create: { libraryEntryId: entryId, format, fileName: file.name, sizeBytes: file.size, data: buffer },
+      update: { format, fileName: file.name, sizeBytes: file.size, data: buffer },
+    });
+
+    revalidatePath('/');
+    return { success: true as const, format };
+  } catch (error: any) {
+    console.error('[uploadReaderFileAction] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteReaderFileAction(entryId: string) {
+  try {
+    await assertAuth();
+    await prisma.bookFile.delete({ where: { libraryEntryId: entryId } }).catch(() => {});
+    await prisma.readerProgress.delete({ where: { libraryEntryId: entryId } }).catch(() => {});
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getReaderDataAction(entryId: string) {
+  try {
+    await assertAuth();
+    const [file, progress] = await Promise.all([
+      prisma.bookFile.findUnique({ where: { libraryEntryId: entryId }, select: { format: true, sizeBytes: true, fileName: true } }),
+      prisma.readerProgress.findUnique({ where: { libraryEntryId: entryId } }),
+    ]);
+    if (!file) return { success: true as const, hasFile: false as const, annotations: [], progress: null };
+
+    const highlights = await prisma.readerHighlight.findMany({
+      where: { libraryEntryId: entryId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return {
+      success: true as const,
+      hasFile: true as const,
+      format: file.format as 'epub' | 'pdf',
+      fileName: file.fileName ?? undefined,
+      progress: progress ? { cfi: progress.cfi ?? undefined, percent: progress.percent ?? undefined, page: progress.page ?? undefined } : null,
+      annotations: highlights.map(h => ({
+        id: h.id,
+        kind: h.kind as 'highlight' | 'note',
+        text: h.text,
+        note: h.note ?? undefined,
+        cfi: h.cfi ?? undefined,
+        page: h.page ?? undefined,
+        rects: h.rects ? JSON.parse(h.rects) : undefined,
+      })),
+    };
+  } catch (error: any) {
+    console.error('[getReaderDataAction] Error:', error);
+    return { success: false as const, error: error.message, hasFile: false as const, annotations: [], progress: null };
+  }
+}
+
+export async function saveReaderProgressAction(
+  entryId: string,
+  data: { cfi?: string; percent?: number; page?: number }
+) {
+  try {
+    await assertAuth();
+
+    // Keep the dashboard's manual-tracking fields in sync with real reading position
+    const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId }, include: { book: { select: { pageCount: true } } } });
+    if (entry && (data.page !== undefined || data.percent !== undefined)) {
+      const totalPages = entry.book?.pageCount || 0;
+      const currentPage = data.page ?? (data.percent !== undefined && totalPages > 0 ? Math.round((data.percent / 100) * totalPages) : undefined);
+      if (currentPage !== undefined && currentPage > entry.currentPage) {
+        const progressPercent = totalPages > 0 ? Math.min(100, Math.round((currentPage / totalPages) * 100)) : 0;
+        await prisma.libraryEntry.update({
+          where: { id: entryId },
+          data: { currentPage, progressPercent, ...(entry.status === 'tbr' && { status: 'reading', dateStarted: new Date() }) },
+        });
+      }
+    }
+
+    await prisma.readerProgress.upsert({
+      where: { libraryEntryId: entryId },
+      create: { libraryEntryId: entryId, ...data },
+      update: { ...data, updatedAt: new Date() },
+    });
+    return { success: true as const };
+  } catch (error: any) {
+    console.error('[saveReaderProgressAction] Error:', error);
+    return { success: false as const, error: error.message };
+  }
+}
+
+/**
+ * Called by the in-app reader when a reading stint ends (close, tab hidden,
+ * periodic checkpoint). Creates a REAL ReadingSession so pages, time, streaks,
+ * XP and analytics all update exactly like manual logging.
+ */
+export async function flushReaderSessionAction(
+  entryId: string,
+  data: {
+    minutes?: number;         // active seconds/60 spent reading this stint
+    pagesRead?: number;       // distinct pages viewed / estimated pages turned
+    cfi?: string;             // latest EPUB position
+    percent?: number;         // latest EPUB percent
+    page?: number;            // latest PDF page
+    completed?: boolean;      // client says the book was read to the end
+  }
+) {
+  try {
+    await assertAuth();
+    const minutes = Math.max(0, Math.round(data.minutes ?? 0));
+    const pagesRead = Math.max(0, Math.round(data.pagesRead ?? 0));
+
+    // Always persist resume position even if the stint was tiny
+    if (data.cfi || data.percent !== undefined || data.page !== undefined) {
+      await prisma.readerProgress.upsert({
+        where: { libraryEntryId: entryId },
+        create: { libraryEntryId: entryId, cfi: data.cfi, percent: data.percent, page: data.page },
+        update: { cfi: data.cfi, percent: data.percent, page: data.page, updatedAt: new Date() },
+      });
+    }
+
+    const entry = await prisma.libraryEntry.findUnique({ where: { id: entryId }, include: { book: true } });
+    if (!entry) return { success: false as const, error: 'Entry not found' };
+
+    const totalPages = entry.book.pageCount || 300;
+    const reachedPage =
+      data.page ??
+      (data.percent !== undefined && totalPages > 0 ? Math.ceil((data.percent / 100) * totalPages) : undefined);
+
+    const furthest = Math.max(entry.currentPage, reachedPage ?? 0);
+    const isFinished = furthest >= totalPages || !!data.completed;
+
+    // Only create a session when something actually happened
+    const shouldLogSession = minutes >= 1 || pagesRead >= 1 || isFinished;
+
+    // Streak counts once per day regardless of how many flushes happen
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const alreadyCountedToday = await prisma.readingSession.findFirst({
+      where: { startedAt: { gte: startOfToday } },
+      select: { id: true },
+    });
+
+    if (shouldLogSession) {
+      await prisma.readingSession.create({
+        data: {
+          libraryEntryId: entryId,
+          pageStart: entry.currentPage,
+          pageEnd: isFinished ? totalPages : Math.max(furthest, entry.currentPage + pagesRead),
+          minutes: minutes || (pagesRead > 0 ? 1 : 0),
+          notes: 'Auto-logged from in-app reader',
+          startedAt: new Date(),
+        },
+      });
+
+      const progressPercent = Math.min(100, Math.round(((isFinished ? totalPages : furthest) / totalPages) * 100));
+      await prisma.libraryEntry.update({
+        where: { id: entryId },
+        data: {
+          currentPage: isFinished ? totalPages : Math.max(furthest, entry.currentPage),
+          progressPercent,
+          status: isFinished ? 'read' : entry.status === 'read' ? 'read' : 'reading',
+          dateStarted: entry.dateStarted ?? new Date(),
+          dateFinished: isFinished && !entry.dateFinished ? new Date() : entry.dateFinished,
+        },
+      });
+
+      // XP — same formula as manual logging (+ completion bonus)
+      const profile = await prisma.userProfile.findUnique({ where: { id: 'user-default' } });
+      const xpGain = minutes * 2 + pagesRead + (isFinished ? 500 : 0);
+
+      let streakData: any = {};
+      if (!alreadyCountedToday) {
+        const newStreak = (profile?.currentStreak ?? 0) + 1;
+        streakData = { currentStreak: newStreak, longestStreak: Math.max(profile?.longestStreak ?? 0, newStreak) };
+      } else if ((profile?.currentStreak ?? 0) === 0) {
+        streakData = { currentStreak: 1, longestStreak: Math.max(profile?.longestStreak ?? 0, 1) };
+      }
+
+      await prisma.userProfile.update({
+        where: { id: 'user-default' },
+        data: { xpCurrent: { increment: xpGain }, ...streakData },
+      });
+    }
+
+    revalidatePath('/');
+    return { success: true as const, isFinished };
+  } catch (error: any) {
+    console.error('[flushReaderSessionAction] Error:', error);
+    return { success: false as const, error: error.message };
+  }
+}
+
+export async function addReaderHighlightAction(input: {
+  libraryEntryId: string;
+  kind?: 'highlight' | 'note';
+  text?: string;
+  note?: string;
+  cfi?: string;
+  page?: number;
+  rects?: { pctX: number; pctY: number; pctW: number; pctH: number }[];
+}) {
+  try {
+    await assertAuth();
+    const created = await prisma.readerHighlight.create({
+      data: {
+        libraryEntryId: input.libraryEntryId,
+        kind: input.kind ?? 'highlight',
+        text: input.text?.slice(0, 4000) ?? '',
+        note: input.note,
+        cfi: input.cfi,
+        page: input.page,
+        rects: input.rects ? JSON.stringify(input.rects) : undefined,
+      },
+    });
+
+    // Mirror into the Journal (Note) so it appears in Notes & Quotes + search
+    const passage = input.text?.slice(0, 2000) ?? '';
+    const journalText =
+      input.kind === 'note' && input.note
+        ? `${input.note}\n\n“${passage}”`
+        : passage;
+    const mirrored = await prisma.note.create({
+      data: {
+        libraryEntryId: input.libraryEntryId,
+        type: input.kind === 'note' ? 'note' : 'highlight',
+        text: journalText,
+        page: input.page,
+        tags: ['reader'],
+      },
+    });
+    await prisma.readerHighlight.update({ where: { id: created.id }, data: { noteId: mirrored.id } });
+
+    return { success: true as const, id: created.id, noteId: mirrored.id };
+  } catch (error: any) {
+    return { success: false as const, error: error.message };
+  }
+}
+
+export async function updateReaderHighlightAction(id: string, note: string) {
+  try {
+    await assertAuth();
+    const existing = await prisma.readerHighlight.findUnique({ where: { id } });
+    if (!existing) return { success: false as const, error: 'Not found' };
+
+    await prisma.readerHighlight.update({ where: { id }, data: { note, kind: 'note' } });
+
+    // Keep the mirrored Journal note in sync
+    if (existing.noteId) {
+      const body = note.trim();
+      const text = existing.text ? `“${existing.text.slice(0, 2000)}”` : '';
+      const journalText = body ? (text ? `${body}\n\n${text}` : body) : text;
+      await prisma.note.update({ where: { id: existing.noteId }, data: { text: journalText || '(note)' } }).catch(() => {});
+    } else {
+      const mirrored = await prisma.note.create({
+        data: {
+          libraryEntryId: existing.libraryEntryId,
+          type: 'note',
+          text: `${note.trim()}\n\n“${existing.text.slice(0, 2000)}”`,
+          page: existing.page ?? undefined,
+          tags: ['reader'],
+        },
+      });
+      await prisma.readerHighlight.update({ where: { id }, data: { noteId: mirrored.id } });
+    }
+
+    return { success: true as const };
+  } catch (error: any) {
+    return { success: false as const, error: error.message };
+  }
+}
+
+export async function deleteReaderHighlightAction(id: string) {
+  try {
+    await assertAuth();
+    const existing = await prisma.readerHighlight.findUnique({ where: { id } });
+    if (existing?.noteId) {
+      await prisma.note.delete({ where: { id: existing.noteId } }).catch(() => {});
+    }
+    await prisma.readerHighlight.delete({ where: { id } });
+    return { success: true as const };
+  } catch (error: any) {
+    return { success: false as const, error: error.message };
   }
 }
 

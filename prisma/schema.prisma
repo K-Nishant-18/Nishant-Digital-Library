@@ -54,6 +54,53 @@ model LibraryEntry {
   sessions ReadingSession[]
   notes    Note[]
   shelves  ShelfOnEntry[]
+
+  readerFile     BookFile?
+  readerProgress ReaderProgress?
+  highlights     ReaderHighlight[]
+}
+
+/// EPUB/PDF binary stored in DB (personal library; keep files < ~25MB)
+model BookFile {
+  id             String   @id @default(cuid())
+  libraryEntryId String   @unique
+  format         String // epub | pdf
+  fileName       String?
+  sizeBytes      Int?
+  data           Bytes
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+}
+
+model ReaderProgress {
+  id             String   @id @default(cuid())
+  libraryEntryId String   @unique
+  cfi            String? // EPUB position
+  percent        Float?
+  page           Int? // PDF page
+  updatedAt      DateTime @updatedAt
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+}
+
+model ReaderHighlight {
+  id             String   @id @default(cuid())
+  libraryEntryId String
+  kind           String   @default("highlight") // highlight | note
+  text           String   @default("")
+  note           String?
+  cfi            String? // EPUB CFI range
+  page           Int? // PDF page number
+  rects          String? // JSON [{pctX,pctY,pctW,pctH}] for PDF overlays
+  noteId         String? // id of the mirrored Note in the Journal
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+
+  @@index([libraryEntryId])
 }
 
 model ReadingSession {
