@@ -47,8 +47,11 @@ export async function sendTestPushAction(): Promise<{ sent: number; error?: stri
       body: 'Push notifications are working! You\'ll receive streak alerts, reading reminders, and milestones here.',
       tag: 'test-push',
     });
-    if (result.sent === 0) {
-      return { sent: 0, error: 'No subscriptions found. Enable push notifications first.' };
+    if (result.sent === 0 && result.failed === 0) {
+      return { sent: 0, error: 'No push subscriptions found. Enable push notifications first, then try again.' };
+    }
+    if (result.failed > 0 && result.sent === 0) {
+      return { sent: 0, error: `All ${result.failed} subscription(s) failed. Try disabling and re-enabling push notifications.` };
     }
     return { sent: result.sent };
   } catch (error: any) {

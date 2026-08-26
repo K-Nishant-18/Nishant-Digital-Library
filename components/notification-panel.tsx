@@ -143,13 +143,21 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
 
         // Save to server
         const subJson = subscription.toJSON();
-        await subscribePushAction({
+        const saveResult = await subscribePushAction({
           endpoint: subscription.endpoint,
           keys: {
             p256dh: subJson.keys!.p256dh!,
             auth: subJson.keys!.auth!,
           },
         });
+
+        if (!saveResult.success) {
+          // Server save failed — unsubscribe from browser too
+          await subscription.unsubscribe();
+          toast(saveResult.error || 'Failed to save subscription on server', 'error');
+          setPushLoading(false);
+          return;
+        }
 
         setPushEnabled(true);
         toast('Push notifications enabled!');
