@@ -183,3 +183,16 @@ model UserProfile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // streak | reminder | milestone
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  data      String?  // JSON metadata (bookId, entryId, etc.)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+}

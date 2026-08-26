@@ -33,6 +33,8 @@ import { searchNotesAction } from '@/lib/actions';
 import { AiChatPanel } from '@/components/ai-chat-panel';
 import { AiRecommendations } from '@/components/ai-recommendations';
 import { AiTagAssistant } from '@/components/ai-tag-assistant';
+import { NotificationPanel } from '@/components/notification-panel';
+import { getNotificationsAction } from '@/lib/notifications-actions';
 
 const nav = [
   ['Dashboard', LayoutDashboard],
@@ -105,9 +107,22 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const [aiTagOpen, setAiTagOpen] = useState(false);
   const [aiTagEntryId, setAiTagEntryId] = useState<string | null>(null);
 
+  // Notification state
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifUnread, setNotifUnread] = useState(0);
+
   // Sync theme state with the class applied pre-paint by layout.tsx
   useEffect(() => {
     setDark(!document.documentElement.classList.contains('light-mode'));
+  }, []);
+
+  // Fetch notification unread count on mount
+  useEffect(() => {
+    getNotificationsAction().then((res) => {
+      if (res.success && res.unreadCount !== undefined) {
+        setNotifUnread(res.unreadCount);
+      }
+    });
   }, []);
 
   const toggleTheme = () => {
@@ -128,6 +143,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
         setSearchOpen(false);
         setModal(null);
         setProfileOpen(false);
+        setNotifOpen(false);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -410,9 +426,17 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               <span>{dark ? 'Light' : 'Dark'}</span>
             </button>
 
-            <button className="icon-button notification" aria-label="Notifications">
+            <button
+              className="icon-button notification relative"
+              aria-label="Notifications"
+              onClick={() => setNotifOpen(!notifOpen)}
+            >
               <Bell size={17} />
-              <b />
+              {notifUnread > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-amber-500 text-black text-[9px] font-bold rounded-full flex items-center justify-center px-1">
+                  {notifUnread > 99 ? '99+' : notifUnread}
+                </span>
+              )}
             </button>
 
             {/* Profile Button with Dropdown Trigger */}
@@ -944,6 +968,20 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
         entryId={aiTagEntryId}
         entries={entries}
         onComplete={() => {}}
+      />
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        open={notifOpen}
+        onClose={() => {
+          setNotifOpen(false);
+          // Refresh unread count when panel closes
+          getNotificationsAction().then((res) => {
+            if (res.success && res.unreadCount !== undefined) {
+              setNotifUnread(res.unreadCount);
+            }
+          });
+        }}
       />
 
       <Toaster />
