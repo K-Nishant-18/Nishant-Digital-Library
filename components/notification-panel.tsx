@@ -10,7 +10,7 @@ import {
   markAllNotificationsReadAction,
   dismissNotificationAction,
 } from '@/lib/notifications-actions';
-import { subscribePushAction, unsubscribePushAction } from '@/lib/push-actions';
+import { subscribePushAction, unsubscribePushAction, getVapidPublicKeyAction } from '@/lib/push-actions';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/components/toast';
 
@@ -127,7 +127,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
 
         // Subscribe
         const reg = await navigator.serviceWorker.ready;
-        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        const vapidKey = await getVapidPublicKeyAction();
         if (!vapidKey) {
           toast('VAPID key not configured', 'error');
           setPushLoading(false);

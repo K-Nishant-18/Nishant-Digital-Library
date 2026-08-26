@@ -4,6 +4,10 @@ import { assertAuth } from '@/lib/auth';
 import { savePushSubscription, removePushSubscription } from '@/lib/push';
 import { revalidatePath } from 'next/cache';
 
+export async function getVapidPublicKeyAction(): Promise<string | null> {
+  return process.env.VAPID_PUBLIC_KEY || null;
+}
+
 export async function subscribePushAction(subscription: {
   endpoint: string;
   keys: { p256dh: string; auth: string };
