@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   BookOpen, LayoutDashboard, Grid2X2, Bookmark, CalendarDays, Flame, Tags,
   TrendingUp, Users, ChevronRight, Plus, Search, Bell, Sun, Moon, ChevronDown,
-  X, Check, Star, Filter, Heart, MessageSquare, User, Settings, Award, LogOut, Download, Sliders, Menu, Camera
+  X, Check, Star, Filter, Heart, MessageSquare, User, Settings, Award, LogOut, Download, Sliders, Menu, Camera, Sparkles
 } from 'lucide-react';
 import { CurrentlyReadingView } from '@/components/currently-reading';
 import { AnalyticsView } from '@/components/analytics-view';
@@ -30,6 +30,9 @@ import { toast, Toaster } from '@/components/toast';
 import { EMPTY_STATS } from '@/lib/empty-stats';
 import { FinishBookModal } from '@/components/finish-book-modal';
 import { searchNotesAction } from '@/lib/actions';
+import { AiChatPanel } from '@/components/ai-chat-panel';
+import { AiRecommendations } from '@/components/ai-recommendations';
+import { AiTagAssistant } from '@/components/ai-tag-assistant';
 
 const nav = [
   ['Dashboard', LayoutDashboard],
@@ -96,6 +99,11 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [finishingEntry, setFinishingEntry] = useState<LibraryEntry | null>(null);
   const [readerEntry, setReaderEntry] = useState<LibraryEntry | null>(null);
+
+  // AI state
+  const [aiChatOpen, setAiChatOpen] = useState(false);
+  const [aiTagOpen, setAiTagOpen] = useState(false);
+  const [aiTagEntryId, setAiTagEntryId] = useState<string | null>(null);
 
   // Sync theme state with the class applied pre-paint by layout.tsx
   useEffect(() => {
@@ -385,6 +393,15 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
 
           <div className="top-actions">
             <button
+              className="icon-button"
+              aria-label="AI Assistant"
+              onClick={() => setAiChatOpen(true)}
+              title="AI Assistant"
+            >
+              <Sparkles size={17} />
+            </button>
+
+            <button
               className="icon-button theme-toggle-btn"
               aria-label="Toggle theme"
               onClick={toggleTheme}
@@ -501,6 +518,10 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               notes={notes}
               goal={goal}
               setSelectedBook={setSelectedBook}
+              onOpenAiTag={(entryId) => {
+                setAiTagEntryId(entryId);
+                setAiTagOpen(true);
+              }}
             />
           )}
 
@@ -542,6 +563,10 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 setModal('edit');
               }}
               onAddBook={() => setModal('add')}
+              onAutoTag={() => {
+                setAiTagEntryId(null);
+                setAiTagOpen(true);
+              }}
               books={books}
               entries={entries}
               shelves={shelves}
@@ -562,6 +587,10 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
                 setModal('edit');
               }}
               onAddBook={() => setModal('add')}
+              onAutoTag={() => {
+                setAiTagEntryId(null);
+                setAiTagOpen(true);
+              }}
               books={books}
               entries={entries}
               shelves={shelves}
@@ -898,6 +927,25 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
         />
       )}
 
+      {/* AI Chat Panel */}
+      <AiChatPanel
+        open={aiChatOpen}
+        onClose={() => setAiChatOpen(false)}
+        entries={entries}
+        books={books}
+        notes={notes}
+        stats={stats}
+      />
+
+      {/* AI Tag Assistant Modal */}
+      <AiTagAssistant
+        open={aiTagOpen}
+        onClose={() => { setAiTagOpen(false); setAiTagEntryId(null); }}
+        entryId={aiTagEntryId}
+        entries={entries}
+        onComplete={() => {}}
+      />
+
       <Toaster />
     </div>
   );
@@ -917,6 +965,7 @@ function DashboardView({
   notes,
   goal,
   setSelectedBook,
+  onOpenAiTag,
 }: {
   setActive: (val: string) => void;
   onAddBook: () => void;
@@ -930,6 +979,7 @@ function DashboardView({
   notes: Note[];
   goal: ReadingGoal;
   setSelectedBook: (book: Book) => void;
+  onOpenAiTag?: (entryId: string) => void;
 }) {
   const currentReadingEntry = entries.find(e => e.status === 'reading') || entries[0];
   const currentReadingBook = currentReadingEntry?.book || books[0];
@@ -1148,9 +1198,14 @@ function DashboardView({
           </div>
         </div>
 
-        {/* Right Column: Currently Reading Card + Quick Actions */}
+        {/* Right Column: Currently Reading Card + Quick Actions + AI */}
         <div className="space-y-4">
           <div className="hidden lg:block">{currentlyReadingCard}</div>
+
+          {/* AI Recommendations */}
+          <div className="hidden lg:block">
+            <AiRecommendations />
+          </div>
 
           {/* Quick Actions Card */}
           <div className="bg-[#141618] border border-[#232629] rounded-lg p-3 space-y-1.5">

@@ -14,6 +14,7 @@ interface VirtualLibraryProps {
   onAddBook: () => void;
   onEditBook?: (entry: LibraryEntry) => void;
   onOpenReader?: (entry: LibraryEntry) => void;
+  onAutoTag?: () => void;
   initialStatus?: string;
   books?: Book[];
   entries?: LibraryEntry[];
@@ -25,6 +26,7 @@ export function VirtualLibraryView({
   onAddBook,
   onEditBook,
   onOpenReader,
+  onAutoTag,
   initialStatus = 'all',
   books = [],
   entries = [],
@@ -69,6 +71,15 @@ export function VirtualLibraryView({
           >
             <Upload size={15} /> Import CSV
           </button>
+          {onAutoTag && (
+            <button
+              className="outline-button flex items-center gap-2 px-4 py-2 rounded-lg"
+              onClick={onAutoTag}
+              title="AI Auto-tag books with genres and mood"
+            >
+              <Sparkles size={15} /> Auto-tag
+            </button>
+          )}
           <button className="primary flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-shadow" onClick={onAddBook}>
             <Plus size={16} /> Add a Book
           </button>

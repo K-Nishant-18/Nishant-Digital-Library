@@ -810,3 +810,35 @@ button:focus-visible, input:focus-visible {
   opacity: 0.4;
   cursor: default;
 }
+
+/* AI Chat Drawer (right-side slide-in) */
+.chat-drawer {
+  background: #101112;
+  border-left: 1px solid #222527;
+}
+
+.chat-drawer-in {
+  animation: chat-slide-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes chat-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Light mode overrides for chat drawer */
+html.light-mode .chat-drawer {
+  background: #ffffff;
+  border-left-color: #e5e7eb;
+}
+
+html.light-mode .chat-drawer .text-white { color: #111827; }
+html.light-mode .chat-drawer .text-slate-200 { color: #374151; }
+html.light-mode .chat-drawer .text-slate-300 { color: #4b5563; }
+html.light-mode .chat-drawer .text-slate-400 { color: #6b7280; }
+html.light-mode .chat-drawer .text-slate-500 { color: #9ca3af; }
+html.light-mode .chat-drawer .bg-slate-950 { background-color: #f9fafb; }
+html.light-mode .chat-drawer .bg-slate-900\/60 { background-color: #f3f4f6; }
+html.light-mode .chat-drawer .bg-slate-900\/80 { background-color: #f3f4f6; }
+html.light-mode .chat-drawer .border-white\/10 { border-color: #e5e7eb; }
+html.light-mode .chat-drawer .border-white\/5 { border-color: #f3f4f6; }
