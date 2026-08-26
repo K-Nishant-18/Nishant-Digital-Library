@@ -396,7 +396,7 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
               className="icon-button"
               aria-label="AI Assistant"
               onClick={() => setAiChatOpen(true)}
-              title="AI Assistant"
+              title="Librarian"
             >
               <Sparkles size={17} />
             </button>

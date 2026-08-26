@@ -62,9 +62,15 @@ export function AiChatPanel({ open, onClose, entries, books, notes, stats }: AiC
       if (result.success && result.reply) {
         setMessages((prev) => [...prev, { role: 'assistant', text: result.reply! }]);
       } else {
+        const errMsg = result.error || 'Unknown error';
+        const friendly = errMsg.includes('API key')
+          ? 'Invalid API key. Please check your GEMINI_API_KEY in .env'
+          : errMsg.includes('429') || errMsg.includes('quota')
+          ? 'Rate limit reached. Please wait a moment and try again.'
+          : `Something went wrong. Please try again.`;
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', text: `Sorry, something went wrong: ${result.error || 'Unknown error'}` },
+          { role: 'assistant', text: friendly },
         ]);
       }
     } catch {
@@ -90,14 +96,14 @@ export function AiChatPanel({ open, onClose, entries, books, notes, stats }: AiC
             .join('\n\n');
           setMessages((prev) => [...prev, { role: 'assistant', text: `Here are some books you might enjoy:\n\n${recs}` }]);
         } else {
-          setMessages((prev) => [...prev, { role: 'assistant', text: `Could not generate recommendations: ${result.error}` }]);
+          setMessages((prev) => [...prev, { role: 'assistant', text: 'Could not generate recommendations. Please try again.' }]);
         }
       } else if (action === 'summarize') {
         const result = await aiSummarizeNotesAction({ prompt: 'Give me a brief summary of the key themes and ideas across all my notes and highlights.' });
         if (result.success && result.response) {
           setMessages((prev) => [...prev, { role: 'assistant', text: result.response! }]);
         } else {
-          setMessages((prev) => [...prev, { role: 'assistant', text: `Could not summarize notes: ${result.error}` }]);
+          setMessages((prev) => [...prev, { role: 'assistant', text: 'Could not summarize notes. Please try again.' }]);
         }
       } else if (action === 'genres') {
         await sendMessage('What are my most read genres and which genres should I explore more?');
@@ -113,7 +119,7 @@ export function AiChatPanel({ open, onClose, entries, books, notes, stats }: AiC
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[65]" role="dialog" aria-label="AI Assistant">
+    <div className="fixed inset-0 z-[65]" role="dialog" aria-label="Librarian">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="chat-drawer chat-drawer-in absolute right-0 top-0 bottom-0 w-[420px] max-w-[92vw] flex flex-col">
         {/* Header */}
@@ -123,8 +129,8 @@ export function AiChatPanel({ open, onClose, entries, books, notes, stats }: AiC
               <Sparkles size={16} className="text-amber-400" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">AI Assistant</h2>
-              <p className="text-[10px] text-slate-400">Powered by Gemini</p>
+              <h2 className="text-sm font-bold text-white">Librarian</h2>
+              <p className="text-[10px] text-slate-400">Your personal reading assistant</p>
             </div>
           </div>
           <button className="icon-button" onClick={onClose} aria-label="Close AI panel">
@@ -140,8 +146,8 @@ export function AiChatPanel({ open, onClose, entries, books, notes, stats }: AiC
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center mx-auto">
                   <Sparkles size={24} className="text-amber-400" />
                 </div>
-                <p className="text-sm font-semibold text-white">Ask me anything about your library</p>
-                <p className="text-xs text-slate-400">I know your books, notes, and reading habits.</p>
+                <p className="text-sm font-semibold text-white">Hello! I&apos;m your Librarian.</p>
+                <p className="text-xs text-slate-400">Ask me about your books, notes, or what to read next.</p>
               </div>
               <div className="space-y-2 pt-2">
                 {QUICK_ACTIONS.map((qa) => (
@@ -216,26 +222,66 @@ export function AiChatPanel({ open, onClose, entries, books, notes, stats }: AiC
 function renderMarkdown(text: string) {
   const lines = text.split('\n');
   return lines.map((line, i) => {
-    if (line.startsWith('**') && line.endsWith('**')) {
-      return <strong key={i}>{line.slice(2, -2)}</strong>;
+    const trimmed = line.trim();
+
+    // Bold lines: **text**
+    if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length > 4) {
+      return <div key={i} className="font-bold mt-1">{renderInline(trimmed.slice(2, -2))}</div>;
     }
-    if (line.match(/^\d+\.\s\*\*/)) {
-      const match = line.match(/^(\d+\.\s)\*\*(.+?)\*\*(.*)/);
-      if (match) {
-        return (
-          <div key={i} className="mb-1">
-            {match[1]}<strong>{match[2]}</strong>{match[3]}
-          </div>
-        );
-      }
-    }
-    if (line.startsWith('- ') || line.startsWith('• ')) {
+
+    // Numbered list: 1. **Title** — reason
+    const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+    if (numberedMatch) {
       return (
-        <div key={i} className="ml-2">
-          • {line.slice(2)}
+        <div key={i} className="flex gap-2 ml-1 mb-1">
+          <span className="text-amber-400 font-bold text-[11px] shrink-0">{numberedMatch[1]}.</span>
+          <span>{renderInline(numberedMatch[2])}</span>
         </div>
       );
     }
-    return <div key={i}>{line}</div>;
+
+    // Bullet points
+    if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+      return (
+        <div key={i} className="flex gap-2 ml-1 mb-0.5">
+          <span className="text-amber-400 shrink-0">•</span>
+          <span>{renderInline(trimmed.slice(2))}</span>
+        </div>
+      );
+    }
+
+    // Section headers: **Header:**
+    if (trimmed.match(/^\*\*.*:\*\*$/)) {
+      const header = trimmed.slice(2, -3);
+      return <div key={i} className="font-bold text-amber-400 text-[11px] uppercase tracking-wider mt-2 mb-1">{header}</div>;
+    }
+
+    // Empty line
+    if (!trimmed) {
+      return <div key={i} className="h-2" />;
+    }
+
+    return <div key={i}>{renderInline(trimmed)}</div>;
   });
+}
+
+function renderInline(text: string) {
+  const parts: (string | React.ReactNode)[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(<strong key={match.index}>{match[1]}</strong>);
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? <>{parts}</> : text;
 }

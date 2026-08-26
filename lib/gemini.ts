@@ -115,7 +115,20 @@ export async function chatWithLibrary(
 ): Promise<string> {
   const genai = getClient();
 
-  const systemPrompt = `You are a friendly, knowledgeable reading assistant for a personal library app. You know the user's reading habits, favorite genres, and books. Be conversational, enthusiastic about books, and helpful. Keep responses concise (2-4 sentences unless asked for more). Use markdown for formatting when helpful.
+  const systemPrompt = `You are the Librarian — a warm, knowledgeable, and enthusiastic reading assistant for a personal library app. You know the user's reading habits, favorite genres, and books.
+
+PERSONALITY:
+- Friendly and encouraging, like a favorite librarian who really knows their patron
+- Enthusiastic about books without being over the-top
+- Concise but informative — prefer structured responses over walls of text
+
+RESPONSE FORMAT RULES:
+- Use numbered lists when recommending multiple items
+- Use bullet points (•) for key details
+- Keep paragraphs to 2-3 sentences max
+- Use **bold** for book titles and key highlights
+- End with a thoughtful follow-up question when appropriate
+- For recommendations: always use a clean numbered list with title, author, and a one-line reason each
 
 Here is the user's library context:
 - Total books: ${libraryContext.totalBooks}
@@ -128,7 +141,7 @@ Here is the user's library context:
 - Recent notes: ${libraryContext.recentNotes.map(n => `"${n.text}" from ${n.book}`).join('; ') || 'No notes yet'}`;
 
   const contents = history.map((m) => ({
-    role: m.role,
+    role: m.role === 'model' ? 'model' as const : 'user' as const,
     parts: [{ text: m.text }],
   }));
 
@@ -136,8 +149,11 @@ Here is the user's library context:
 
   const response = await genai.models.generateContent({
     model: MODEL,
-    contents: [{ role: 'user', parts: [{ text: systemPrompt }] }, ...contents],
-    config: { maxOutputTokens: 1024 },
+    contents,
+    config: {
+      maxOutputTokens: 4096,
+      systemInstruction: systemPrompt,
+    },
   });
 
   return response.text || 'Sorry, I could not generate a response.';
@@ -159,18 +175,18 @@ Library context:
 - Genres explored: ${libraryContext.genres.join(', ')}
 - Recent notes: ${libraryContext.recentNotes.map(n => `"${n.text}"`).join('; ')}
 
-Respond with ONLY a JSON array (no markdown, no explanation). Each object must have:
+Respond with ONLY a JSON array (no markdown fences, no explanation). Each object must have:
 - "title": book title (string)
 - "author": author name (string)
-- "reason": 1-2 sentence reason why this matches their taste (string)
-- "matchPercent": how well it matches their taste, 50-99 (number)
+- "reason": one short sentence explaining why it matches their taste — be specific and reference their actual reading history (string)
+- "matchPercent": a number 50-99 indicating how well it fits their taste
 
 Do NOT recommend books already in their library. Return real, published books only.`;
 
   const response = await genai.models.generateContent({
     model: MODEL,
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: { maxOutputTokens: 1024, temperature: 0.7 },
+    config: { maxOutputTokens: 4096, temperature: 0.7 },
   });
 
   const text = response.text || '[]';
@@ -195,18 +211,23 @@ export async function summarizeJournal(
     .map((n) => `[${n.type}] from "${n.book}": "${n.text}" (tags: ${n.tags.join(', ') || 'none'})`)
     .join('\n');
 
-  const prompt = `You are a thoughtful reading journal assistant. The user has the following notes, quotes, and highlights from their reading:
+  const prompt = `You are the Librarian — a thoughtful reading journal assistant. The user has the following notes, quotes, and highlights from their reading:
 
 ${notesText}
 
 User's question: ${userPrompt}
 
-Provide a helpful, insightful response. If asked to summarize, organize by theme. If asked to find patterns, highlight recurring ideas. Be specific and reference actual note content.`;
+RESPONSE FORMAT:
+- Organize by theme or topic when summarizing
+- Use bullet points (•) for key themes, patterns, or insights
+- Reference specific books and quotes when making observations
+- Keep paragraphs short (2-3 sentences max)
+- End with an insightful observation or follow-up question`;
 
   const response = await genai.models.generateContent({
     model: MODEL,
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: { maxOutputTokens: 1024 },
+    config: { maxOutputTokens: 4096 },
   });
 
   return response.text || 'No analysis available.';
