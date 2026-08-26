@@ -5,6 +5,8 @@ A private, self-hostable reading tracker with a built-in **EPUB & PDF reader**, 
 Built with **Next.js 16 (App Router) · React 19 · Prisma · PostgreSQL · Tailwind CSS v4**.
 
 ---
+<img width="1449" height="826" alt="image" src="https://github.com/user-attachments/assets/a235045c-c075-4684-8f97-20fd339c04db" />
+
 
 ## ✨ Features
 
