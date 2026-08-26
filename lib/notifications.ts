@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { sendPushNotification } from '@/lib/push';
 
 // Deduplication: check if a notification of this type with this title already exists today
 async function notificationExists(type: string, title: string): Promise<boolean> {
@@ -20,6 +21,7 @@ async function createNotificationIfNew(params: {
   title: string;
   message: string;
   data?: string;
+  push?: boolean;
 }): Promise<void> {
   const exists = await notificationExists(params.type, params.title);
   if (!exists) {
@@ -31,6 +33,16 @@ async function createNotificationIfNew(params: {
         data: params.data,
       },
     });
+
+    // Send push notification if requested
+    if (params.push !== false) {
+      await sendPushNotification({
+        title: params.title,
+        body: params.message,
+        tag: `my-library-${params.type}`,
+        data: { type: params.type },
+      });
+    }
   }
 }
 

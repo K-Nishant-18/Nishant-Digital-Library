@@ -99,3 +99,55 @@ self.addEventListener('fetch', (event) => {
   // Everything else same-origin: stale-while-revalidate
   event.respondWith(staleWhileRevalidate(request));
 });
+
+// ─── Push Notifications ─────────────────────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = {
+      title: 'My Library',
+      body: event.data.text(),
+    };
+  }
+
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/my-logo.png',
+    badge: data.badge || '/my-logo.png',
+    tag: data.tag || 'my-library-notification',
+    data: data.data || {},
+    vibrate: [100, 50, 100],
+    actions: [
+      { action: 'open', title: 'Open Library' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'My Library', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'dismiss') return;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Focus existing window if open
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open new window
+      return clients.openWindow('/');
+    })
+  );
+});

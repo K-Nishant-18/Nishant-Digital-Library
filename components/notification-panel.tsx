@@ -10,7 +10,20 @@ import {
   markAllNotificationsReadAction,
   dismissNotificationAction,
 } from '@/lib/notifications-actions';
+import { subscribePushAction, unsubscribePushAction } from '@/lib/push-actions';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from '@/components/toast';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 interface Notification {
   id: string;
@@ -38,11 +51,14 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     loadNotifications();
+    checkPushStatus();
   }, [open]);
 
   // Close on outside click (desktop dropdown)
@@ -65,6 +81,83 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
       setUnreadCount(result.unreadCount || 0);
     }
     setLoading(false);
+  };
+
+  const checkPushStatus = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setPushEnabled(false);
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const subscription = await reg.pushManager.getSubscription();
+      setPushEnabled(!!subscription);
+    } catch {
+      setPushEnabled(false);
+    }
+  };
+
+  const togglePush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast('Push notifications are not supported on this device', 'error');
+      return;
+    }
+
+    setPushLoading(true);
+
+    try {
+      if (pushEnabled) {
+        // Unsubscribe
+        const reg = await navigator.serviceWorker.ready;
+        const subscription = await reg.pushManager.getSubscription();
+        if (subscription) {
+          await unsubscribePushAction(subscription.endpoint);
+          await subscription.unsubscribe();
+        }
+        setPushEnabled(false);
+        toast('Push notifications disabled');
+      } else {
+        // Request permission
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          toast('Notification permission denied', 'error');
+          setPushLoading(false);
+          return;
+        }
+
+        // Subscribe
+        const reg = await navigator.serviceWorker.ready;
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidKey) {
+          toast('VAPID key not configured', 'error');
+          setPushLoading(false);
+          return;
+        }
+
+        const subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        });
+
+        // Save to server
+        const subJson = subscription.toJSON();
+        await subscribePushAction({
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subJson.keys!.p256dh!,
+            auth: subJson.keys!.auth!,
+          },
+        });
+
+        setPushEnabled(true);
+        toast('Push notifications enabled!');
+      }
+    } catch (err) {
+      console.error('Push toggle error:', err);
+      toast('Failed to update push notifications', 'error');
+    } finally {
+      setPushLoading(false);
+    }
   };
 
   const handleMarkRead = async (id: string) => {
@@ -107,6 +200,9 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
           onMarkAllRead={handleMarkAllRead}
           onDismiss={handleDismiss}
           onClose={onClose}
+          pushEnabled={pushEnabled}
+          pushLoading={pushLoading}
+          onTogglePush={togglePush}
         />
       </div>
 
@@ -123,6 +219,9 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
             onDismiss={handleDismiss}
             onClose={onClose}
             mobile
+            pushEnabled={pushEnabled}
+            pushLoading={pushLoading}
+            onTogglePush={togglePush}
           />
         </div>
       </div>
@@ -139,6 +238,9 @@ function PanelContent({
   onDismiss,
   onClose,
   mobile = false,
+  pushEnabled,
+  pushLoading,
+  onTogglePush,
 }: {
   notifications: Notification[];
   unreadCount: number;
@@ -148,6 +250,9 @@ function PanelContent({
   onDismiss: (id: string) => void;
   onClose: () => void;
   mobile?: boolean;
+  pushEnabled: boolean;
+  pushLoading: boolean;
+  onTogglePush: () => void;
 }) {
   return (
     <>
@@ -236,6 +341,40 @@ function PanelContent({
               );
             })}
           </div>
+        )}
+      </div>
+
+      {/* Push Notifications Toggle */}
+      <div className="px-4 py-3 border-t border-white/10 shrink-0">
+        <button
+          className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs transition-all ${
+            pushEnabled
+              ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+              : 'bg-slate-800/50 border border-white/5 text-slate-300 hover:border-amber-500/30'
+          }`}
+          onClick={onTogglePush}
+          disabled={pushLoading}
+        >
+          <div className="flex items-center gap-2">
+            <Bell size={14} />
+            <span className="font-medium">
+              {pushEnabled ? 'Push notifications ON' : 'Enable push notifications'}
+            </span>
+          </div>
+          {pushLoading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <div className={`w-8 h-[18px] rounded-full flex items-center transition-all ${
+              pushEnabled ? 'bg-amber-500 justify-end' : 'bg-slate-700 justify-start'
+            }`}>
+              <div className="w-3.5 h-3.5 bg-white rounded-full mx-[2px]" />
+            </div>
+          )}
+        </button>
+        {pushEnabled && (
+          <p className="text-[10px] text-slate-500 mt-1.5 text-center">
+            You&apos;ll receive streak alerts and reminders on this device
+          </p>
         )}
       </div>
     </>
