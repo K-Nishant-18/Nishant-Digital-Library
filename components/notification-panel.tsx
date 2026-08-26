@@ -10,7 +10,7 @@ import {
   markAllNotificationsReadAction,
   dismissNotificationAction,
 } from '@/lib/notifications-actions';
-import { subscribePushAction, unsubscribePushAction, getVapidPublicKeyAction } from '@/lib/push-actions';
+import { subscribePushAction, unsubscribePushAction, getVapidPublicKeyAction, sendTestPushAction } from '@/lib/push-actions';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/components/toast';
 
@@ -53,6 +53,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   const [loading, setLoading] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
+  const [testPushLoading, setTestPushLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,13 +66,14 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
+      if (pushLoading) return;
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [open, onClose]);
+  }, [open, onClose, pushLoading]);
 
   const loadNotifications = async () => {
     setLoading(true);
@@ -160,6 +162,17 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
     }
   };
 
+  const handleSendTestPush = async () => {
+    setTestPushLoading(true);
+    const result = await sendTestPushAction();
+    setTestPushLoading(false);
+    if (result.error) {
+      toast(result.error, 'error');
+    } else {
+      toast(`Test notification sent to ${result.sent} device(s)!`);
+    }
+  };
+
   const handleMarkRead = async (id: string) => {
     await markNotificationReadAction(id);
     setNotifications((prev) =>
@@ -203,12 +216,14 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
           pushEnabled={pushEnabled}
           pushLoading={pushLoading}
           onTogglePush={togglePush}
+          testPushLoading={testPushLoading}
+          onSendTestPush={handleSendTestPush}
         />
       </div>
 
       {/* Mobile: full-screen slide-in panel */}
       <div className="md:hidden fixed inset-0 z-[65]" role="dialog" aria-label="Notifications">
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={pushLoading ? undefined : onClose} />
         <div className="notification-mobile-panel absolute right-0 top-0 bottom-0 w-full max-w-[420px] bg-slate-900 flex flex-col">
           <PanelContent
             notifications={notifications}
@@ -222,6 +237,8 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
             pushEnabled={pushEnabled}
             pushLoading={pushLoading}
             onTogglePush={togglePush}
+            testPushLoading={testPushLoading}
+            onSendTestPush={handleSendTestPush}
           />
         </div>
       </div>
@@ -241,6 +258,8 @@ function PanelContent({
   pushEnabled,
   pushLoading,
   onTogglePush,
+  testPushLoading,
+  onSendTestPush,
 }: {
   notifications: Notification[];
   unreadCount: number;
@@ -253,6 +272,8 @@ function PanelContent({
   pushEnabled: boolean;
   pushLoading: boolean;
   onTogglePush: () => void;
+  testPushLoading: boolean;
+  onSendTestPush: () => void;
 }) {
   return (
     <>
@@ -372,9 +393,23 @@ function PanelContent({
           )}
         </button>
         {pushEnabled && (
-          <p className="text-[10px] text-slate-500 mt-1.5 text-center">
-            You&apos;ll receive streak alerts and reminders on this device
-          </p>
+          <>
+            <p className="text-[10px] text-slate-500 mt-1.5 text-center">
+              You&apos;ll receive streak alerts and reminders on this device
+            </p>
+            <button
+              className="w-full mt-2 flex items-center justify-center gap-2 p-2 rounded-xl text-[11px] font-medium bg-slate-800/50 border border-white/5 text-slate-400 hover:text-amber-400 hover:border-amber-500/30 transition-all"
+              onClick={onSendTestPush}
+              disabled={testPushLoading}
+            >
+              {testPushLoading ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Bell size={12} />
+              )}
+              Send test notification
+            </button>
+          </>
         )}
       </div>
     </>

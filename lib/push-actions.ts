@@ -1,7 +1,7 @@
 'use server';
 
 import { assertAuth } from '@/lib/auth';
-import { savePushSubscription, removePushSubscription } from '@/lib/push';
+import { savePushSubscription, removePushSubscription, sendPushNotification } from '@/lib/push';
 import { revalidatePath } from 'next/cache';
 
 export async function getVapidPublicKeyAction(): Promise<string | null> {
@@ -36,5 +36,22 @@ export async function unsubscribePushAction(
     return result;
   } catch {
     return { success: false };
+  }
+}
+
+export async function sendTestPushAction(): Promise<{ sent: number; error?: string }> {
+  try {
+    await assertAuth();
+    const result = await sendPushNotification({
+      title: 'Test Notification',
+      body: 'Push notifications are working! You\'ll receive streak alerts, reading reminders, and milestones here.',
+      tag: 'test-push',
+    });
+    if (result.sent === 0) {
+      return { sent: 0, error: 'No subscriptions found. Enable push notifications first.' };
+    }
+    return { sent: result.sent };
+  } catch (error: any) {
+    return { sent: 0, error: error.message };
   }
 }
