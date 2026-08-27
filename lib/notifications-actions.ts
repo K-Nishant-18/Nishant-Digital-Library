@@ -19,13 +19,10 @@ export async function getNotificationsAction(): Promise<{
   unreadCount?: number;
   error?: string;
 }> {
+  await assertAuth();
   try {
-    await assertAuth();
-
-    // Generate new notifications based on current state
     await generateNotifications();
 
-    // Fetch all notifications, newest first
     const notifications = await prisma.notification.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -48,25 +45,26 @@ export async function getNotificationsAction(): Promise<{
       })),
       unreadCount,
     };
-  } catch (error: any) {
-    console.error('[getNotificationsAction] Error:', error);
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: message };
   }
 }
 
 export async function markNotificationReadAction(
   id: string,
 ): Promise<{ success: boolean; error?: string }> {
+  await assertAuth();
   try {
-    await assertAuth();
     await prisma.notification.update({
       where: { id },
       data: { read: true },
     });
     revalidatePath('/');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: message };
   }
 }
 
@@ -74,29 +72,31 @@ export async function markAllNotificationsReadAction(): Promise<{
   success: boolean;
   error?: string;
 }> {
+  await assertAuth();
   try {
-    await assertAuth();
     await prisma.notification.updateMany({
       where: { read: false },
       data: { read: true },
     });
     revalidatePath('/');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: message };
   }
 }
 
 export async function dismissNotificationAction(
   id: string,
 ): Promise<{ success: boolean; error?: string }> {
+  await assertAuth();
   try {
-    await assertAuth();
     await prisma.notification.delete({ where: { id } });
     revalidatePath('/');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: message };
   }
 }
 
@@ -104,12 +104,13 @@ export async function clearAllNotificationsAction(): Promise<{
   success: boolean;
   error?: string;
 }> {
+  await assertAuth();
   try {
-    await assertAuth();
     await prisma.notification.deleteMany();
     revalidatePath('/');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: message };
   }
 }

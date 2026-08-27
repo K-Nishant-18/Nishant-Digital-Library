@@ -118,11 +118,13 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
 
   // Fetch notification unread count on mount
   useEffect(() => {
-    getNotificationsAction().then((res) => {
-      if (res.success && res.unreadCount !== undefined) {
-        setNotifUnread(res.unreadCount);
-      }
-    });
+    getNotificationsAction()
+      .then((res) => {
+        if (res.success && res.unreadCount !== undefined) {
+          setNotifUnread(res.unreadCount);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const toggleTheme = () => {
@@ -976,11 +978,13 @@ export default function LibraryDashboard({ data }: LibraryDashboardProps) {
         onClose={() => {
           setNotifOpen(false);
           // Refresh unread count when panel closes
-          getNotificationsAction().then((res) => {
-            if (res.success && res.unreadCount !== undefined) {
-              setNotifUnread(res.unreadCount);
-            }
-          });
+          getNotificationsAction()
+            .then((res) => {
+              if (res.success && res.unreadCount !== undefined) {
+                setNotifUnread(res.unreadCount);
+              }
+            })
+            .catch(() => {});
         }}
       />
 

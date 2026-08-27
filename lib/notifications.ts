@@ -34,14 +34,14 @@ async function createNotificationIfNew(params: {
       },
     });
 
-    // Send push notification if requested
+    // Send push notification if requested (fire-and-forget, don't break if it fails)
     if (params.push !== false) {
-      await sendPushNotification({
+      sendPushNotification({
         title: params.title,
         body: params.message,
         tag: `my-library-${params.type}`,
         data: { type: params.type },
-      });
+      }).catch(() => {});
     }
   }
 }

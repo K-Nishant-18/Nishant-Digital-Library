@@ -55,6 +55,12 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   const [pushLoading, setPushLoading] = useState(false);
   const [testPushLoading, setTestPushLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -77,25 +83,31 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
 
   const loadNotifications = async () => {
     setLoading(true);
-    const result = await getNotificationsAction();
-    if (result.success && result.notifications) {
-      setNotifications(result.notifications);
-      setUnreadCount(result.unreadCount || 0);
+    try {
+      const result = await getNotificationsAction();
+      if (!mountedRef.current) return;
+      if (result.success && result.notifications) {
+        setNotifications(result.notifications);
+        setUnreadCount(result.unreadCount || 0);
+      }
+    } catch {
+      // Panel may have unmounted or action redirected — ignore
+    } finally {
+      if (mountedRef.current) setLoading(false);
     }
-    setLoading(false);
   };
 
   const checkPushStatus = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      setPushEnabled(false);
+      if (mountedRef.current) setPushEnabled(false);
       return;
     }
     try {
       const reg = await navigator.serviceWorker.ready;
       const subscription = await reg.pushManager.getSubscription();
-      setPushEnabled(!!subscription);
+      if (mountedRef.current) setPushEnabled(!!subscription);
     } catch {
-      setPushEnabled(false);
+      if (mountedRef.current) setPushEnabled(false);
     }
   };
 
@@ -116,14 +128,14 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
           await unsubscribePushAction(subscription.endpoint);
           await subscription.unsubscribe();
         }
-        setPushEnabled(false);
+        if (mountedRef.current) setPushEnabled(false);
         toast('Push notifications disabled');
       } else {
         // Request permission
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           toast('Notification permission denied', 'error');
-          setPushLoading(false);
+          if (mountedRef.current) setPushLoading(false);
           return;
         }
 
@@ -132,7 +144,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
         const vapidKey = await getVapidPublicKeyAction();
         if (!vapidKey) {
           toast('VAPID key not configured', 'error');
-          setPushLoading(false);
+          if (mountedRef.current) setPushLoading(false);
           return;
         }
 
@@ -155,34 +167,40 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
           // Server save failed — unsubscribe from browser too
           await subscription.unsubscribe();
           toast(saveResult.error || 'Failed to save subscription on server', 'error');
-          setPushLoading(false);
+          if (mountedRef.current) setPushLoading(false);
           return;
         }
 
-        setPushEnabled(true);
+        if (mountedRef.current) setPushEnabled(true);
         toast('Push notifications enabled!');
       }
     } catch (err) {
       console.error('Push toggle error:', err);
       toast('Failed to update push notifications', 'error');
     } finally {
-      setPushLoading(false);
+      if (mountedRef.current) setPushLoading(false);
     }
   };
 
   const handleSendTestPush = async () => {
     setTestPushLoading(true);
-    const result = await sendTestPushAction();
-    setTestPushLoading(false);
-    if (result.error) {
-      toast(result.error, 'error');
-    } else {
-      toast(`Test notification sent to ${result.sent} device(s)!`);
+    try {
+      const result = await sendTestPushAction();
+      if (result.error) {
+        toast(result.error, 'error');
+      } else {
+        toast(`Test notification sent to ${result.sent} device(s)!`);
+      }
+    } catch {
+      toast('Failed to send test notification', 'error');
+    } finally {
+      if (mountedRef.current) setTestPushLoading(false);
     }
   };
 
   const handleMarkRead = async (id: string) => {
     await markNotificationReadAction(id);
+    if (!mountedRef.current) return;
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
@@ -191,12 +209,14 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
 
   const handleMarkAllRead = async () => {
     await markAllNotificationsReadAction();
+    if (!mountedRef.current) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   };
 
   const handleDismiss = async (id: string) => {
     await dismissNotificationAction(id);
+    if (!mountedRef.current) return;
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     setUnreadCount((prev) => {
       const wasUnread = notifications.find((n) => n.id === id && !n.read);
